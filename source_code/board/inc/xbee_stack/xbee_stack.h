@@ -2,7 +2,7 @@
 #ifndef XBEE_STACK_H
 #define XBEE_STACK_H
 
-#include <data_types.h>
+#include <comman.h>
 
 #define START_DELIMITER 0x7E
 
@@ -66,24 +66,21 @@ typedef enum
 
 typedef union  
 {
-    
-#define AtCommandFrameDataLen 10
+
     struct 
     {
         u8 frameId;
         AtCommandList atCommand;
-        u8 parameterValue[AtCommandFrameDataLen];
+        u8 *parameterValue;
     }AtCommandFrame;
-    
-#define AtCommandQueueParameterValueDataLen 10
+
     struct 
     {
         u8 frameId;
         AtCommandList atCommand;
-        u8 parameterValue[AtCommandQueueParameterValueDataLen];
+        u8 *parameterValue;
     }AtCommandQueueParameterValue;
 
-#define ZigbeeTransmitRequestRfDataLen 100
     struct 
     {
         u8 frameId;
@@ -91,9 +88,9 @@ typedef union
         u8 destinationNetworkAddress[2];    // plz note msb address should be 1st
         u8 broadcastRadius;
         u8 options;
-        u8 rfData[ZigbeeTransmitRequestRfDataLen];
+        u8 *rfData;
     }ZigbeeTransmitRequest;
-    
+
     struct 
     {
         u8 frameId;
@@ -108,19 +105,16 @@ typedef union
         u8 transmitRetryCount;
         ZigbeeTransmitDeliveryStatus deliveryStatus;
         ZigbeeTransmitDiscoveryStatus discoveryStatus;
-
     }ZigbeeTransmitStatus;
 
-#define ZigbeeReceivePacketReceiveDataLen 100
     struct 
     {
         u8 frameId;
         u8 sourceAdress[8];            // plz note msb address should be 1st
         u8 sourceNetworkAddress[2];    // plz note msb address should be 1st
         u8 receiveOption;
-        u8 receiveData[ZigbeeReceivePacketReceiveDataLen];        
+        u8 *receiveData;
     }ZigbeeReceivePacket;
-
 }IdentifierSpecificData;
 
 typedef struct 
@@ -136,5 +130,7 @@ typedef struct
     FrameData farmeData;
     u8 checkSum;
 }ApiFrame;
+
+void GenerateApiFrame(u8 *apdata);
 
 #endif

@@ -7,8 +7,9 @@ LDFLAGS=   -lpthread -lrt
 STRIP=$(CROSS_COMPILE)strip
 
 APP_SRC_PATH=../src/application
+XBEE_STACK_SRC_PATH=../src/xbee_stack
 
-SOURCES= $(APP_SRC_PATH)/main.c
+SOURCES= $(APP_SRC_PATH)/main.c $(APP_SRC_PATH)/c_buffer.c $(XBEE_STACK_SRC_PATH)/xbee_stack.c
 
 OBJECTS_PATH=../obj
 
