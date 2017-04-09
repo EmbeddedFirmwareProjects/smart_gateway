@@ -17,6 +17,11 @@
 #define OPTION_PACKET_BROADCAST_PACKET 0x02
 #define OPTION_PACKET_ENCRYPTED_APS_ENCRYPTION 0x20
 
+// Api frame packet process
+#define API_PACKET_BACKUP_BUFFER_SIZE 200
+#define API_PACKET_BACKUP_SIZE 3
+
+
 typedef enum 
 {
     AT_COMMAND = 0X08,
@@ -42,7 +47,6 @@ typedef enum
     ApiIdentifier_MAX,
 }ApiIdentifier;
 
-
 typedef enum 
 {
     DH,
@@ -64,79 +68,74 @@ typedef enum
     ZigbeeTransmitDiscoveryStatus_MAX,
 }ZigbeeTransmitDiscoveryStatus;
 
+typedef enum 
+{
+    EOK = 0x00,
+    EAPI_BACKUP,
+    ESTART_DELIMITER,
+    ECHECKSUM,
+    ECMDID,
+    XbeeStackError_MAX,
+}XbeeStackError;
+
+
+struct 
+{
+    u8 frameId;
+    AtCommandList atCommand;
+    u8 *parameterValue;
+}AtCommandFrame;
+        
+struct 
+{
+    u8 frameId;
+    AtCommandList atCommand;
+    u8 *parameterValue;
+}AtCommandQueueParameterValue;
+        
+struct 
+{
+    u8 frameId;
+    u8 destinationAdress[8];            // plz note msb address should be 1st
+    u8 destinationNetworkAddress[2];    // plz note msb address should be 1st
+    u8 broadcastRadius;
+    u8 options;
+    u8 *rfData;
+}ZigbeeTransmitRequest;
+        
+typedef struct 
+{
+    u8 frameId;
+    AtCommandList atCommand;
+    AtCommandStatus commandStatus;
+}AtCommandResponse;
+        
+typedef struct 
+{
+    u8 frameId;
+    u8 destinationAddress[2];    // plz note msb address should be 1st
+    u8 transmitRetryCount;
+    ZigbeeTransmitDeliveryStatus deliveryStatus;
+    ZigbeeTransmitDiscoveryStatus discoveryStatus;
+}ZigbeeTransmitStatus;
+        
+typedef struct 
+{
+    u8 frameId;
+    u8 sourceAdress[8];            // plz note msb address should be 1st
+    u8 sourceNetworkAddress[2];    // plz note msb address should be 1st
+    u8 receiveOption;
+    u8 *receiveData;
+}ZigbeeReceivePacket;
 
 typedef struct 
 {
-    ApiIdentifier cmdId;
-    union  
-    {
-        struct 
-        {
-            u8 frameId;
-            AtCommandList atCommand;
-            u8 *parameterValue;
-        }AtCommandFrame;
-        
-        struct 
-        {
-            u8 frameId;
-            AtCommandList atCommand;
-            u8 *parameterValue;
-        }AtCommandQueueParameterValue;
-        
-        struct 
-        {
-            u8 frameId;
-            u8 destinationAdress[8];            // plz note msb address should be 1st
-            u8 destinationNetworkAddress[2];    // plz note msb address should be 1st
-            u8 broadcastRadius;
-            u8 options;
-            u8 *rfData;
-        }ZigbeeTransmitRequest;
-        
-        struct 
-        {
-            u8 frameId;
-            AtCommandList atCommand;
-            AtCommandStatus commandStatus;
-        }AtCommandResponse;
-        
-        struct 
-        {
-            u8 frameId;
-            u8 destinationAddress[2];    // plz note msb address should be 1st
-            u8 transmitRetryCount;
-            ZigbeeTransmitDeliveryStatus deliveryStatus;
-            ZigbeeTransmitDiscoveryStatus discoveryStatus;
-        }ZigbeeTransmitStatus;
-        
-        struct 
-        {
-            u8 frameId;
-            u8 sourceAdress[8];            // plz note msb address should be 1st
-            u8 sourceNetworkAddress[2];    // plz note msb address should be 1st
-            u8 receiveOption;
-            u8 *receiveData;
-        }ZigbeeReceivePacket;
-    }IdentifierSpecificData;
-}FrameData;
+    u8 usageFlag;
+    u8 buffer[API_PACKET_BACKUP_BUFFER_SIZE];
+}ApiFramePacketBackup;
 
-typedef struct 
-{
-    FrameData frameData;
-    u16 cmdDataLen;
-}InfoFrameData;
 
-typedef struct 
-{
-    u8 startDelimiter;
-    u16 len;
-    FrameData frameData;
-    u8 checkSum;
-}ApiFrame;
-
-s16 ValidateApiFrame(u8 *apdata);
-void ExtractFrameData(u8 *apdata, InfoFrameData *apframe_data);
-void ProcessInfoFrameData(InfoFrameData *apframe_data);
+void ProcessApiFrame(u8* pdata, u16 len);
+void XbeeStackInit(void);
 
 #endif

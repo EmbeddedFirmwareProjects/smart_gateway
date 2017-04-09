@@ -1,15 +1,17 @@
 CROSS_COMPILE=
 
 CC=$(CROSS_COMPILE)gcc
-CFLAGS=-c -g -rdynamic -funwind-tables -Wall -I../inc/xbee_stack -I../inc/application -I../inc/platform
+CFLAGS=-c -g -rdynamic -funwind-tables -Wall -I../inc/xbee_stack -I../inc/application -I../inc/platform -I../inc/utils
 LDFLAGS=   -lpthread -lrt
 
 STRIP=$(CROSS_COMPILE)strip
 
 APP_SRC_PATH=../src/application
 XBEE_STACK_SRC_PATH=../src/xbee_stack
+UTILS_SRC_PATH=../src/utils
+TEST_SRC_PATH=../src/test
 
-SOURCES= $(APP_SRC_PATH)/main.c $(APP_SRC_PATH)/c_buffer.c $(XBEE_STACK_SRC_PATH)/xbee_stack.c
+SOURCES= $(APP_SRC_PATH)/main.c $(UTILS_SRC_PATH)/c_buffer.c $(XBEE_STACK_SRC_PATH)/xbee_stack.c $(TEST_SRC_PATH)/test_xbee_stack.c
 
 OBJECTS_PATH=../obj
 
@@ -21,10 +23,10 @@ all: $(SOURCES) $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	$(CC) $(OBJECTS) -o $@ $(LDFLAGS) 
-	mv $(OBJECTS) $(OBJECTS_PATH)		# move to temp path
+#	mv $(OBJECTS) $(OBJECTS_PATH)		# move to temp path
 
 .c.o:
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:
-	$(RM) $(OBJECTS_PATH)/* $(TARGET)
+	$(RM) $(OBJECTS) $(TARGET)

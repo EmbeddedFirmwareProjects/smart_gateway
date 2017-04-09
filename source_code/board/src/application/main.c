@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <xbee_stack.h>
+#include <test_xbee_stack.h>
 
 //variable
 //local var_name
@@ -13,6 +13,8 @@
 
 int main (void) 
 {
+    testXbeeStack();
     
+    printf("\n\n");
     return 0;
 }

@@ -9,4 +9,7 @@ typedef long s32;
 typedef short int s16;
 typedef char s8;
 
+#define true 1
+#define false 0
+
 #endif
