@@ -34,3 +34,5 @@
 
 # Other Local Data
 *other_reference
+# skip obj files directory
+*obj    

@@ -24,25 +24,25 @@
 
 typedef enum 
 {
-    AT_COMMAND = 0X08,
-    AT_COMMAND_QUEUE_PARAMETER_VALUE = 0X09,
-    ZIGBEE_TRANSMIT_REQUEST = 0X10,
-    EXPLICIT_ADDRESSING_ZIGBEE_COMMAND_FRAME = 0X11,
-    REMOTE_COMMAND_REQUEST = 0X17,
-    CREATE_SOURCE_ROUTE = 0X21,
-    AT_COMMAND_RESPONSE = 0X88,
-    MODEM_STATUS = 0X8A,
-    ZIGBEE_TRANSMIT_STATUS = 0X8B,
-    ZIGBEE_RECEIVE_PACKET = 0X90,
-    ZIGBEE_EXPLICIT_RX_INDICATOR = 0X91,
-    ZIGBEE_IO_DATA_SAMPLE_RX_INDICATOR = 0X92,
-    XBEE_SENSOR_READ_INDICATOR = 0X94,
-    NODE_IDENTIFICATION_INDICATOR = 0X95,
-    REMOTE_COMMAND_RESPONSE = 0X97,
-    EXTENDED_MODEM_STATUS = 0X98,
-    OVER_THE_AIR_FIRMWARE_UPDATE_STATUS = 0XA0,
-    ROUTE_RECORD_INDICATOR = 0XA1,
-    MANY_TO_ONE_ROUTE_REQUEST_INDICATOR = 0XA3,
+	AT_COMMAND                                  = 0X08,
+	AT_COMMAND_QUEUE_PARAMETER_VALUE            = 0X09,
+	ZIGBEE_TRANSMIT_REQUEST                     = 0X10,
+	EXPLICIT_ADDRESSING_ZIGBEE_COMMAND_FRAME    = 0X11,
+	REMOTE_COMMAND_REQUEST                      = 0X17,
+	CREATE_SOURCE_ROUTE                         = 0X21,
+	AT_COMMAND_RESPONSE                         = 0X88,
+	MODEM_STATUS                                = 0X8A,
+	ZIGBEE_TRANSMIT_STATUS                      = 0X8B,
+	ZIGBEE_RECEIVE_PACKET                       = 0X90,
+	ZIGBEE_EXPLICIT_RX_INDICATOR                = 0X91,
+	ZIGBEE_IO_DATA_SAMPLE_RX_INDICATOR          = 0X92,
+	XBEE_SENSOR_READ_INDICATOR                  = 0X94,
+	NODE_IDENTIFICATION_INDICATOR               = 0X95,
+	REMOTE_COMMAND_RESPONSE                     = 0X97,
+	EXTENDED_MODEM_STATUS                       = 0X98,
+	OVER_THE_AIR_FIRMWARE_UPDATE_STATUS         = 0XA0,
+	ROUTE_RECORD_INDICATOR                      = 0XA1,
+	MANY_TO_ONE_ROUTE_REQUEST_INDICATOR         = 0XA3,
     
     ApiIdentifier_MAX,
 }ApiIdentifier;
@@ -60,21 +60,46 @@ typedef enum
 
 typedef enum 
 {
+	TX_DELIVERY_STATUS_SUCCESS                      = 0x00,
+	TX_DELIVERY_STATUS_MAC_ACK_FAILURE              = 0x01,
+	TX_DELIVERY_STATUS_CCA_FAILURE                  = 0x02,
+	TX_DELIVERY_STATUS_INVALID_DESTINATION_ENDPOINT = 0x15,
+	TX_DELIVERY_STATUS_NETWORK_ACK_FAILURE          = 0x21,
+	TX_DELIVERY_STATUS_NOT_JOINED_TO_NETWORK        = 0x22,
+	TX_DELIVERY_STATUS_SELF_ADDRESSED               = 0x23,
+	TX_DELIVERY_STATUS_ADDRESS_NOT_FOUND            = 0x24,
+	TX_DELIVERY_STATUS_ROUTE_NOT_FOUND              = 0x25,
+	TX_DELIVERY_STATUS_BROADCAST_SOURCE_FAILED      = 0x26,
+	TX_DELIVERY_STATUS_INVALID_BINDING_TABLE_INDEX  = 0x2B,
+	TX_DELIVERY_STATUS_RESOURCE_ERROR               = 0x2C,
+	TX_DELIVERY_STATUS_ATTEMPTED_BROADCAST          = 0x2D,
+	TX_DELIVERY_STATUS_ATTEMPTED_UNICAST            = 0x2E,
+	TX_DELIVERY_STATUS_RESOURCE_ERROR_LACK          = 0x32,
+	TX_DELIVERY_STATUS_DATA_PAYLOAD_TOO_LARGE       = 0x74,
+	TX_DELIVERY_STATUS_INDIRECT_MESSAGE_UNREQUESTED = 0x75,
+
     ZigbeeTransmitDeliveryStatus_MAX,
 }ZigbeeTransmitDeliveryStatus;
 
-typedef enum 
+typedef enum
 {
+	TX_DISCOVERY_STATUs_NO_DISCOVERY_OVERHEAD       = 0x00,
+	TX_DISCOVERY_STATUs_ADDRESS_DISCOVERY           = 0x01,
+	TX_DISCOVERY_STATUs_ROUTE_DISCOVERY             = 0x02,
+	TX_DISCOVERY_STATUs_ADDRESS_AND_ROUTE           = 0x03,
+	TX_DISCOVERY_STATUs_EXTENDED_TIMEOUT_DISCOVERY  = 0x40,
+
     ZigbeeTransmitDiscoveryStatus_MAX,
 }ZigbeeTransmitDiscoveryStatus;
 
 typedef enum 
 {
-    EOK = 0x00,
+    EOK 				= 0x00,
     EAPI_BACKUP,
     ESTART_DELIMITER,
     ECHECKSUM,
     ECMDID,
+
     XbeeStackError_MAX,
 }XbeeStackError;
 
@@ -113,26 +138,21 @@ typedef struct
 typedef struct 
 {
     u8 frameId;
-    u8 destinationAddress[2];    // plz note msb address should be 1st
+    u16 destinationAddress;    // plz note msb address should be 1st
     u8 transmitRetryCount;
     ZigbeeTransmitDeliveryStatus deliveryStatus;
     ZigbeeTransmitDiscoveryStatus discoveryStatus;
 }ZigbeeTransmitStatus;
         
+#define ZIGBEE_RECEIVE_PACKET_DATA_LEN(LEN) (LEN - 12)
 typedef struct 
 {
     u8 frameId;
-    u8 sourceAdress[8];            // plz note msb address should be 1st
-    u8 sourceNetworkAddress[2];    // plz note msb address should be 1st
+    u8 sourceAdress[8];            	// plz note msb address should be 1st
+    u16 sourceNetworkAddress;   	// plz note msb address should be 1st
     u8 receiveOption;
     u8 *receiveData;
 }ZigbeeReceivePacket;
-
-typedef struct 
-{
-    u8 usageFlag;
-    u8 buffer[API_PACKET_BACKUP_BUFFER_SIZE];
-}ApiFramePacketBackup;
 
 
 void ProcessApiFrame(u8* pdata, u16 len);

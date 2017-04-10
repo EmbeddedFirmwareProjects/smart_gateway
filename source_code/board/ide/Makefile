@@ -17,7 +17,7 @@ OBJECTS_PATH=../obj
 
 OBJECTS=$(SOURCES:.c=.o)
 
-TARGET=../board_app
+TARGET=../obj/board_app
 
 all: $(SOURCES) $(TARGET)
 
