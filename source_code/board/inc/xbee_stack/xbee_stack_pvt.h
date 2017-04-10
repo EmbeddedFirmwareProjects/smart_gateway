@@ -1,8 +1,8 @@
 #ifndef XBEE_STACK_PVT_H
 #define XBEE_STACK_PVT_H
 
-#include <xbee_stack.h>
 #include <comman.h>
+#include <xbee_at_command.h>
 
 typedef struct
 {
@@ -16,12 +16,14 @@ typedef struct
     void(*pFunc)(void*);
 }ApiIdentifierList;
 
-
-static void processZigbeeReceivePacket(void *received_packet);
-
 static ApiFramePacketBackup sApiPacketBackup[API_PACKET_BACKUP_SIZE];
 static ApiIdentifierList ProcessApiIdentifierList[] = {
-    {AT_COMMAND_RESPONSE, processZigbeeReceivePacket},
+    {AT_COMMAND_RESPONSE, ProcessAtCommandResponse},
+	//{ZIGBEE_TRANSMIT_STATUS, processZigbeeTransmitStatus},
+	//{ZIGBEE_RECEIVE_PACKET, processZigbeeReceivePacket},
 };
+
+void processZigbeeTransmitStatus(void *apdata);
+void processZigbeeReceivePacket(void *apdata);
 
 #endif 

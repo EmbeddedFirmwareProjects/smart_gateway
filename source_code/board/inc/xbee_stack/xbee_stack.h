@@ -21,6 +21,7 @@
 #define API_PACKET_BACKUP_BUFFER_SIZE 200
 #define API_PACKET_BACKUP_SIZE 3
 
+// AT COMMAND SETTINGS
 
 typedef enum 
 {
@@ -49,7 +50,8 @@ typedef enum
 
 typedef enum 
 {
-    DH,
+    DH 	= ('D' << 8 | 'H'),
+
     AtCommandList_MAX,
 }AtCommandList;
 
@@ -104,21 +106,21 @@ typedef enum
 }XbeeStackError;
 
 
-struct 
+typedef struct
 {
     u8 frameId;
     AtCommandList atCommand;
     u8 *parameterValue;
 }AtCommandFrame;
         
-struct 
+typedef struct
 {
     u8 frameId;
     AtCommandList atCommand;
     u8 *parameterValue;
 }AtCommandQueueParameterValue;
         
-struct 
+typedef struct
 {
     u8 frameId;
     u8 destinationAdress[8];            // plz note msb address should be 1st
@@ -133,6 +135,7 @@ typedef struct
     u8 frameId;
     AtCommandList atCommand;
     AtCommandStatus commandStatus;
+    u8 *commandData;
 }AtCommandResponse;
         
 typedef struct 
@@ -148,12 +151,11 @@ typedef struct
 typedef struct 
 {
     u8 frameId;
-    u8 sourceAdress[8];            	// plz note msb address should be 1st
-    u16 sourceNetworkAddress;   	// plz note msb address should be 1st
+    u8 sourceAdress[8];            	// note:: msb address should be 1st
+    u16 sourceNetworkAddress;   	// note:: msb address should be 1st
     u8 receiveOption;
     u8 *receiveData;
 }ZigbeeReceivePacket;
-
 
 void ProcessApiFrame(u8* pdata, u16 len);
 void XbeeStackInit(void);

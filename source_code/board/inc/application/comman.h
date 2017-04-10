@@ -5,6 +5,6 @@
 #include <data_types.h>
 #include <string.h>
 #include <app_config.h>
-
+#include <timer.h>
 
 #endif

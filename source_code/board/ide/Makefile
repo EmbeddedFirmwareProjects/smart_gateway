@@ -2,7 +2,7 @@ CROSS_COMPILE=
 
 CC=$(CROSS_COMPILE)gcc
 CFLAGS=-c -g -rdynamic -funwind-tables -Wall -I../inc/xbee_stack -I../inc/application -I../inc/platform -I../inc/utils
-LDFLAGS=   -lpthread -lrt
+LDFLAGS=-lpthread -lrt
 
 STRIP=$(CROSS_COMPILE)strip
 
@@ -11,7 +11,11 @@ XBEE_STACK_SRC_PATH=../src/xbee_stack
 UTILS_SRC_PATH=../src/utils
 TEST_SRC_PATH=../src/test
 
-SOURCES= $(APP_SRC_PATH)/main.c $(UTILS_SRC_PATH)/c_buffer.c $(XBEE_STACK_SRC_PATH)/xbee_stack.c $(TEST_SRC_PATH)/test_xbee_stack.c
+SOURCES=$(APP_SRC_PATH)/main.c \
+	$(XBEE_STACK_SRC_PATH)/xbee_stack.c \
+	$(XBEE_STACK_SRC_PATH)/xbee_at_command.c \
+	$(UTILS_SRC_PATH)/timer.c \
+	$(TEST_SRC_PATH)/test_xbee_stack.c
 
 OBJECTS_PATH=../obj
 

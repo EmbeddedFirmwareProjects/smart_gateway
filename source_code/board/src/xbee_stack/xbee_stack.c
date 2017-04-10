@@ -2,95 +2,70 @@
 #include <xbee_stack.h>
 #include <xbee_stack_pvt.h>
 
-
-static void processAtCommandResponse(AtCommandResponse *pat_response)
+/*void processZigbeeTransmitStatus(void *apdata)
 {
-    LOG_INFO0(("\n<< %s >>", __func__));
-    
-    switch(pat_response->atCommand)
-    {
-        case AtCommandList_MAX:
-        default:
-        {
-            // command not handled
-        }
-        break;
-    }
-}
+	u8 *data = (u8 *)apdata;
+	ZigbeeTransmitStatus transmit_status;
 
-static void processZigbeeTransmitStatus(ZigbeeTransmitStatus *transmit_status)
-{
+	LOG_INFO0(("\n<< %s >>", __func__));
+
+	transmit_status.frameId = data[3];
+	transmit_status.destinationAddress = (data[4] << 8) | data[5];
+	transmit_status.transmitRetryCount = data[6];
+	transmit_status.deliveryStatus = data[7];
+	transmit_status.discoveryStatus = data[8];
 
 }
 
-static void processZigbeeReceivePacket(void *received_packet)
+void processZigbeeReceivePacket(void *apdata)
 {
+	u8 *data = (u8 *)apdata;
+	ZigbeeReceivePacket received_packet;
+	u16 api_len = 0x00;
 
-}
+	LOG_INFO0(("\n<< %s >>", __func__));
+
+	received_packet.frameId = data[3];
+	received_packet.sourceAdress[0] = data[4];
+	received_packet.sourceAdress[1] = data[5];
+	received_packet.sourceAdress[2] = data[6];
+	received_packet.sourceAdress[3] = data[7];
+	received_packet.sourceAdress[4] = data[8];
+	received_packet.sourceAdress[5] = data[9];
+	received_packet.sourceAdress[6] = data[10];
+	received_packet.sourceAdress[7] = data[11];
+	received_packet.sourceNetworkAddress = (data[12] << 8) | data[13];
+	received_packet.receiveOption = data[14];
+	api_len = (data[1] << 8) | data[2];
+	memcpy(received_packet.receiveData, &data[15], ZIGBEE_RECEIVE_PACKET_DATA_LEN(api_len));
+
+}*/
 
 static s16 processFrameData(u8 *data)
 {
+	u32 api_identifier_list_len = 0x00;
+	u32 count = 0x00;
+
     LOG_INFO0(("\n<< %s >>", __func__));
-    
-    switch(data[3])                 // cmdID
+
+    api_identifier_list_len = sizeof(ProcessApiIdentifierList)/sizeof(ApiIdentifierList);
+
+    for(count = 0x00; count < api_identifier_list_len; count++)
     {
-        case AT_COMMAND_RESPONSE:
-        {
-            AtCommandResponse at_response;
-
-            at_response.frameId = data[3];
-            at_response.atCommand = (data[4] << 8) | data[5];
-            at_response.commandStatus = data[6];
-
-            processAtCommandResponse(&at_response);
-        }
-        break;
-
-        case ZIGBEE_TRANSMIT_STATUS:
-        {
-        	ZigbeeTransmitStatus transmit_status;
-
-        	transmit_status.frameId = data[3];
-        	transmit_status.destinationAddress = (data[4] << 8) | data[5];
-        	transmit_status.transmitRetryCount = data[6];
-        	transmit_status.deliveryStatus = data[7];
-        	transmit_status.discoveryStatus = data[8];
-
-        	processZigbeeTransmitStatus(&transmit_status);
-        }
-        break;
-
-        case ZIGBEE_RECEIVE_PACKET:
-        {
-        	ZigbeeReceivePacket received_packet;
-        	u16 api_len = 0x00;
-
-        	received_packet.frameId = data[3];
-        	received_packet.sourceAdress[0] = data[4];
-        	received_packet.sourceAdress[1] = data[5];
-        	received_packet.sourceAdress[2] = data[6];
-        	received_packet.sourceAdress[3] = data[7];
-        	received_packet.sourceAdress[4] = data[8];
-        	received_packet.sourceAdress[5] = data[9];
-        	received_packet.sourceAdress[6] = data[10];
-        	received_packet.sourceAdress[7] = data[11];
-        	received_packet.sourceNetworkAddress = (data[12] << 8) | data[13];
-        	received_packet.receiveOption = data[14];
-        	api_len = (data[1] << 8) | data[2];
-        	memcpy(received_packet.receiveData, &data[15], ZIGBEE_RECEIVE_PACKET_DATA_LEN(api_len));
-
-        	processZigbeeReceivePacket(&received_packet);
-        }
-        break;
-
-        default:
-        {
-            // command not hadled
-            return -ECMDID;
-        }
-        break;
+    	if(ProcessApiIdentifierList[count].apiIdentifier == data[3])
+    	{
+    		ProcessApiIdentifierList[count].pFunc(data);
+    	}
     }
-    return EOK;
+
+    if(count >= api_identifier_list_len)
+    {
+    	return -ECMDID;
+    }
+    else
+    {
+    	return EOK;
+    }
 }
 
 static u8 calculateCheckSum(u8 *apapi_frame, u16 len)
@@ -117,7 +92,7 @@ static s16 validateApiFrame(u8 *data)
     
     LOG_INFO0(("\n<< %s >>", __func__));
     
-    // verify start deliminator
+    // verify start delimiter
     if(data[0] != API_FRAME_START_DELIMITER) 
     {
         return -ESTART_DELIMITER;
@@ -208,6 +183,7 @@ void ProcessApiFrame(u8* pdata, u16 len)
     if(ret != EOK)
     {
         LOG_ERR(("\nERR:: validateApiFrame():: %d", ret));
+        papiFrame_backup->usageFlag = false;
         return;
     }
     
@@ -216,9 +192,9 @@ void ProcessApiFrame(u8* pdata, u16 len)
     if(ret != EOK)
     {
         LOG_ERR(("\nERR:: processFrameData():: %d", ret));
+        papiFrame_backup->usageFlag = false;
         return;
     }
-    papiFrame_backup->usageFlag = false;
 }
 
 void XbeeStackInit(void)
