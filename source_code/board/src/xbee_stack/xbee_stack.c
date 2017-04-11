@@ -60,7 +60,7 @@ static s16 processFrameData(u8 *data)
         }
     }
 
-    if(count >= api_identifier_list_len)
+    if(count > api_identifier_list_len)
     {
         return -ECMDID;
     }
@@ -208,9 +208,9 @@ s16 ProcessApiFrameRequest(u8* pdata, u16 len)
     pdata[1] = (len & 0xFF00) >> 8;
     pdata[2] = len & 0xFF;
 
-    pdata[len] = calculateCheckSum(&pdata[3], len);
+    pdata[len + 3] = calculateCheckSum(&pdata[3], len);
 
-    return SendApiFrameRequest(pdata, len);
+    return SendApiFrameRequest(pdata, (len + 4));   // including start delimiter + len(2) + checksum
 }
 
 void XbeeStackInit(void)

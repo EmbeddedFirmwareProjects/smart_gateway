@@ -110,7 +110,7 @@ typedef enum
 typedef struct
 {
     u8 frameId;
-    AtCommandList atCommand;
+    u16 atCommand;
     u8 *parameterValue;
 }AtCommandFrame;
         

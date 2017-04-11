@@ -5,7 +5,7 @@
  * Log related configurations
 */
 
-#define DEBUG_ENABLED
+//#define DEBUG_ENABLED
 
 #ifdef DEBUG_ENABLED
 #define LOG_DBG(x) printf x

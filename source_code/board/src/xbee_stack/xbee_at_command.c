@@ -24,7 +24,7 @@ void XbeeProcessAtCommandResponse(void *apdata)
 
     if(cmd_data_len > 0)
     {
-        memcpy(at_response.commandData, &data[8], cmd_data_len);
+        at_response.commandData = &data[8];
     }
 
     if((sRegisteredExpectedCmd.validFlag == false) && (sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.atCommand == at_response.atCommand))
@@ -33,20 +33,22 @@ void XbeeProcessAtCommandResponse(void *apdata)
         sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandStatus = at_response.commandStatus;
         if(cmd_data_len > 0)
         {
-            memcpy(sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandData, at_response.commandData, cmd_data_len);
+            sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandData = at_response.commandData;
             sRegisteredExpectedCmd.appXbeeAtCmdResponse.commandDataLen = cmd_data_len;
         }
         sRegisteredExpectedCmd.validFlag = true;
     }
     else
     {
-        AppXbeeAtCommandResponse app_at_cmd_response;
+        AppXbeeAtCommandResponse app_at_cmd_response = {0};
 
         app_at_cmd_response.atCmdResponse.frameId = at_response.frameId;
+        app_at_cmd_response.atCmdResponse.atCommand = at_response.atCommand;
         app_at_cmd_response.atCmdResponse.commandStatus = at_response.commandStatus;
         if(cmd_data_len > 0)
         {
-            memcpy(app_at_cmd_response.atCmdResponse.commandData, at_response.commandData, cmd_data_len);
+            app_at_cmd_response.atCmdResponse.commandData = at_response.commandData;
+            app_at_cmd_response.commandDataLen = cmd_data_len;
         }
         XbeeAtCommandEventCallBack(&app_at_cmd_response);
     }
@@ -54,7 +56,7 @@ void XbeeProcessAtCommandResponse(void *apdata)
 
 s16 XbeeSendAtCommandRequest(AppXbeeAtCommandFrame *at_cmd_request)
 {
-    u16 len = (at_cmd_request->parameterLen + 3);           // frameId + AtCommand(2)
+    u16 len = (at_cmd_request->parameterLen + 4);           // cmd + frameId + AtCommand(2)
 
     LOG_INFO0(("\n<< %s >>", __func__));
 
@@ -66,7 +68,6 @@ s16 XbeeSendAtCommandRequest(AppXbeeAtCommandFrame *at_cmd_request)
     {
         memcpy(&sAtCommandRequestApiPacketBuffer[7], at_cmd_request->atCmdFrame.parameterValue, at_cmd_request->parameterLen);
     }
-
     return ProcessApiFrameRequest(sAtCommandRequestApiPacketBuffer, len);
 }
 
