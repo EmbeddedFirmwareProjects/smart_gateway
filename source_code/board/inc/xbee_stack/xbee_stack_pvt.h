@@ -16,14 +16,12 @@ typedef struct
     void(*pFunc)(void*);
 }ApiIdentifierList;
 
-static ApiFramePacketBackup sApiPacketBackup[API_PACKET_BACKUP_SIZE];
-static ApiIdentifierList ProcessApiIdentifierList[] = {
-    {AT_COMMAND_RESPONSE, ProcessAtCommandResponse},
-	//{ZIGBEE_TRANSMIT_STATUS, processZigbeeTransmitStatus},
-	//{ZIGBEE_RECEIVE_PACKET, processZigbeeReceivePacket},
-};
+void XbeeProcessAtCommandResponse(void *apdata);
 
-void processZigbeeTransmitStatus(void *apdata);
-void processZigbeeReceivePacket(void *apdata);
+static ApiIdentifierList ProcessApiIdentifierList[] = {
+    {AT_COMMAND_RESPONSE, XbeeProcessAtCommandResponse},
+    //{ZIGBEE_TRANSMIT_STATUS, processZigbeeTransmitStatus},
+    //{ZIGBEE_RECEIVE_PACKET, processZigbeeReceivePacket},
+};
 
 #endif 

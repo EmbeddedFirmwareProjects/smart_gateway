@@ -12,4 +12,8 @@ typedef char s8;
 #define true 1
 #define false 0
 
+typedef void (*pVoidFuncVoidpData)(void *);
+typedef void (*pVoidFuncVoidpDataU16Len)(void *, u16);
+
+
 #endif

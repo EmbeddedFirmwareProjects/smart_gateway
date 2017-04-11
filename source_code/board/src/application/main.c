@@ -1,20 +1,23 @@
 #include <stdio.h>
+#include <xbee_stack.h>
+#include <xbee_at_command.h>
+
 #include <test_xbee_stack.h>
 
-//variable
-//local var_name
-//global gVarName
-//static sVarName
-//argument var_name
+s16 SendApiFrameRequest(u8* pdata, u16 len)
+{
+    return 0;
+}
 
-//function
-//global FuncName
-//static funcName
+void XbeeAtCommandEventCallBack(AppXbeeAtCommandResponse *at_cmd_response)
+{
+
+}
 
 int main (void) 
 {
-    testXbeeStack();
-    
+    XbeeStackInit();
+
     printf("\n\n");
     return 0;
 }

@@ -2,49 +2,51 @@
 #include <xbee_stack.h>
 #include <xbee_stack_pvt.h>
 
+static ApiFramePacketBackup sApiPacketBackup[API_PACKET_BACKUP_SIZE];
+
 /*void processZigbeeTransmitStatus(void *apdata)
 {
-	u8 *data = (u8 *)apdata;
-	ZigbeeTransmitStatus transmit_status;
+    u8 *data = (u8 *)apdata;
+    ZigbeeTransmitStatus transmit_status;
 
-	LOG_INFO0(("\n<< %s >>", __func__));
+    LOG_INFO0(("\n<< %s >>", __func__));
 
-	transmit_status.frameId = data[3];
-	transmit_status.destinationAddress = (data[4] << 8) | data[5];
-	transmit_status.transmitRetryCount = data[6];
-	transmit_status.deliveryStatus = data[7];
-	transmit_status.discoveryStatus = data[8];
+    transmit_status.frameId = data[3];
+    transmit_status.destinationAddress = (data[4] << 8) | data[5];
+    transmit_status.transmitRetryCount = data[6];
+    transmit_status.deliveryStatus = data[7];
+    transmit_status.discoveryStatus = data[8];
 
 }
 
 void processZigbeeReceivePacket(void *apdata)
 {
-	u8 *data = (u8 *)apdata;
-	ZigbeeReceivePacket received_packet;
-	u16 api_len = 0x00;
+    u8 *data = (u8 *)apdata;
+    ZigbeeReceivePacket received_packet;
+    u16 api_len = 0x00;
 
-	LOG_INFO0(("\n<< %s >>", __func__));
+    LOG_INFO0(("\n<< %s >>", __func__));
 
-	received_packet.frameId = data[3];
-	received_packet.sourceAdress[0] = data[4];
-	received_packet.sourceAdress[1] = data[5];
-	received_packet.sourceAdress[2] = data[6];
-	received_packet.sourceAdress[3] = data[7];
-	received_packet.sourceAdress[4] = data[8];
-	received_packet.sourceAdress[5] = data[9];
-	received_packet.sourceAdress[6] = data[10];
-	received_packet.sourceAdress[7] = data[11];
-	received_packet.sourceNetworkAddress = (data[12] << 8) | data[13];
-	received_packet.receiveOption = data[14];
-	api_len = (data[1] << 8) | data[2];
-	memcpy(received_packet.receiveData, &data[15], ZIGBEE_RECEIVE_PACKET_DATA_LEN(api_len));
+    received_packet.frameId = data[3];
+    received_packet.sourceAdress[0] = data[4];
+    received_packet.sourceAdress[1] = data[5];
+    received_packet.sourceAdress[2] = data[6];
+    received_packet.sourceAdress[3] = data[7];
+    received_packet.sourceAdress[4] = data[8];
+    received_packet.sourceAdress[5] = data[9];
+    received_packet.sourceAdress[6] = data[10];
+    received_packet.sourceAdress[7] = data[11];
+    received_packet.sourceNetworkAddress = (data[12] << 8) | data[13];
+    received_packet.receiveOption = data[14];
+    api_len = (data[1] << 8) | data[2];
+    memcpy(received_packet.receiveData, &data[15], ZIGBEE_RECEIVE_PACKET_DATA_LEN(api_len));
 
 }*/
 
 static s16 processFrameData(u8 *data)
 {
-	u32 api_identifier_list_len = 0x00;
-	u32 count = 0x00;
+    u32 api_identifier_list_len = 0x00;
+    u32 count = 0x00;
 
     LOG_INFO0(("\n<< %s >>", __func__));
 
@@ -52,19 +54,19 @@ static s16 processFrameData(u8 *data)
 
     for(count = 0x00; count < api_identifier_list_len; count++)
     {
-    	if(ProcessApiIdentifierList[count].apiIdentifier == data[3])
-    	{
-    		ProcessApiIdentifierList[count].pFunc(data);
-    	}
+        if(ProcessApiIdentifierList[count].apiIdentifier == data[3])
+        {
+            ProcessApiIdentifierList[count].pFunc(data);
+        }
     }
 
     if(count >= api_identifier_list_len)
     {
-    	return -ECMDID;
+        return -ECMDID;
     }
     else
     {
-    	return EOK;
+        return EOK;
     }
 }
 
@@ -151,7 +153,7 @@ static s16 storeApiFrame(u8* pdata, u16 len, ApiFramePacketBackup **papiFrame_ba
     return -EAPI_BACKUP;
 }
 
-void ProcessApiFrame(u8* pdata, u16 len)
+void ProcessApiFrameResponse(u8* pdata, u16 len)
 {
     ApiFramePacketBackup *papiFrame_backup = 0x00;
     s16 ret = 0x00;
@@ -195,6 +197,20 @@ void ProcessApiFrame(u8* pdata, u16 len)
         papiFrame_backup->usageFlag = false;
         return;
     }
+}
+
+s16 ProcessApiFrameRequest(u8* pdata, u16 len)
+{
+    LOG_INFO0(("\n<< %s >>", __func__));
+
+    pdata[0] = API_FRAME_START_DELIMITER;
+
+    pdata[1] = (len & 0xFF00) >> 8;
+    pdata[2] = len & 0xFF;
+
+    pdata[len] = calculateCheckSum(&pdata[3], len);
+
+    return SendApiFrameRequest(pdata, len);
 }
 
 void XbeeStackInit(void)

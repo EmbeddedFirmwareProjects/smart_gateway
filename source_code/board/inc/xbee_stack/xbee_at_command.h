@@ -5,37 +5,38 @@
 
 typedef enum
 {
-	AT_CMD_OK 							= 0x00,
-	EAT_CMD_INVALID,
-	EAT_CMD_EXPECTED_RESPONSE_TIMEOUT,
-	EAT_CMD_EXPECTED_IN_USE,
-	EAT_CMD_SEND_ERROR,
+    EXBEE_AT_CMD_OK= 0x00,
+    EXBEE_AT_CMD_INVALID,
+    EXBEE_AT_CMD_EXPECTED_RESPONSE_TIMEOUT,
+    EXBEE_AT_CMD_EXPECTED_IN_USE,
+    EXBEE_AT_CMD_SEND_ERROR,
 
-	ErrAtCommand_MAX,
-}ErrAtCommand;
+    ErrXbeeAtCommand_MAX,
+}ErrXbeeAtCommand;
 
-typedef struct
-{
-	AtCommandResponse atCmdResponse;
-	u8 commandDataLen;
-}AppAtCommandResponse;
 
 typedef struct
 {
-	u8 validFlag;
-	AppAtCommandResponse appAtCmdResponse;
-}ResisgerExpectedAtCmdResponse;
+    AtCommandResponse atCmdResponse;
+    u8 commandDataLen;
+}AppXbeeAtCommandResponse;
 
 typedef struct
 {
-	AtCommandFrame atCmdFrame;
+    u8 validFlag;
+    AppXbeeAtCommandResponse appXbeeAtCmdResponse;
+}ResisgerExpectedXbeeAtCmdResponse;
+
+typedef struct
+{
+    AtCommandFrame atCmdFrame;
     u8 parameterLen;
-}AppAtCommandFrame;
+}AppXbeeAtCommandFrame;
 
-s16 SendAtCommand(AppAtCommandFrame *at_cmd);
-s16 SendAtCommandWithExpectedResponse(AppAtCommandFrame *at_cmd, AppAtCommandResponse *expected_response);
-s16 AtCommandExpectedResponse(AppAtCommandResponse *expected_response);
+s16 XbeeSendAtCommandRequest(AppXbeeAtCommandFrame *at_cmd);
+s16 XbeeSendAtCommandRequestExpectedResponse(AppXbeeAtCommandFrame *at_cmd, AppXbeeAtCommandResponse *expected_response);
 
-void ProcessAtCommandResponse(void *apdata);
+s16 XbeeAtCommandExpectedResponse(AppXbeeAtCommandResponse *expected_response);
+void XbeeAtCommandEventCallBack(AppXbeeAtCommandResponse *at_cmd_response);     // should be defined in application layer
 
 #endif
