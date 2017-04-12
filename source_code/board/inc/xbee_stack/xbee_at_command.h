@@ -23,6 +23,7 @@ typedef struct
 
 typedef struct
 {
+    u8 availableFlag;
     u8 validFlag;
     AppXbeeAtCommandResponse appXbeeAtCmdResponse;
 }ResisgerExpectedXbeeAtCmdResponse;
@@ -34,9 +35,9 @@ typedef struct
 }AppXbeeAtCommandFrame;
 
 s16 XbeeSendAtCommandRequest(AppXbeeAtCommandFrame *at_cmd);
-s16 XbeeSendAtCommandRequestExpectedResponse(AppXbeeAtCommandFrame *at_cmd, AppXbeeAtCommandResponse *expected_response);
+s16 XbeeSendAtCommandRequestExpectedResponse(AppXbeeAtCommandFrame *at_cmd, AppXbeeAtCommandResponse *expected_response, u16 timeout_ms);
 
-s16 XbeeAtCommandExpectedResponse(AppXbeeAtCommandResponse *expected_response);
+s16 XbeeAtCommandExpectedResponse(AppXbeeAtCommandResponse *expected_response, u16 timeout_ms);
 void XbeeAtCommandEventCallBack(AppXbeeAtCommandResponse *at_cmd_response);     // should be defined in application layer
 
 #endif

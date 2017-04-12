@@ -1,7 +1,7 @@
 
 #include <xbee_at_command.h>
 
-static ResisgerExpectedXbeeAtCmdResponse sRegisteredExpectedCmd = {true};
+static ResisgerExpectedXbeeAtCmdResponse sRegisteredExpectedCmd = {true, false};
 static u8 sAtCommandRequestApiPacketBuffer[API_PACKET_REQUEST_BUFFER_SIZE] = {0};
 
 extern u16 ProcessApiFrameRequest(u8* pdata, u16 len);
@@ -27,7 +27,7 @@ void XbeeProcessAtCommandResponse(void *apdata)
         at_response.commandData = &data[8];
     }
 
-    if((sRegisteredExpectedCmd.validFlag == false) && (sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.atCommand == at_response.atCommand))
+    if((sRegisteredExpectedCmd.availableFlag == false) && (sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.atCommand == at_response.atCommand))
     {
         sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.frameId = at_response.frameId;
         sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandStatus = at_response.commandStatus;
@@ -40,7 +40,7 @@ void XbeeProcessAtCommandResponse(void *apdata)
     }
     else
     {
-        AppXbeeAtCommandResponse app_at_cmd_response = {0};
+        AppXbeeAtCommandResponse app_at_cmd_response = {{0}};
 
         app_at_cmd_response.atCmdResponse.frameId = at_response.frameId;
         app_at_cmd_response.atCmdResponse.atCommand = at_response.atCommand;
@@ -71,9 +71,8 @@ s16 XbeeSendAtCommandRequest(AppXbeeAtCommandFrame *at_cmd_request)
     return ProcessApiFrameRequest(sAtCommandRequestApiPacketBuffer, len);
 }
 
-s16 XbeeSendAtCommandRequestExpectedResponse(AppXbeeAtCommandFrame *app_at_cmd, AppXbeeAtCommandResponse *expected_response)
+s16 XbeeSendAtCommandRequestExpectedResponse(AppXbeeAtCommandFrame *app_at_cmd, AppXbeeAtCommandResponse *expected_response, u16 timeout_ms)
 {
-    u16 count = 0x00;
     s16 ret = 0x00;
 
     LOG_INFO0(("\n<< %s >>", __func__));
@@ -85,59 +84,32 @@ s16 XbeeSendAtCommandRequestExpectedResponse(AppXbeeAtCommandFrame *app_at_cmd, 
         return ret;
     }
 
-    // register expected response
-    if(sRegisteredExpectedCmd.validFlag == false)
-    {
-        LOG_ERR(("\nERR:: sRegisteredExpectedCmd already in use"));
-        return -EXBEE_AT_CMD_EXPECTED_IN_USE;
-    }
+    ret = XbeeAtCommandExpectedResponse(expected_response, timeout_ms);
 
-    sRegisteredExpectedCmd.validFlag = false;
-    sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.atCommand = expected_response->atCmdResponse.atCommand;
-
-    while((count < 10) && (sRegisteredExpectedCmd.validFlag != true))
-    {
-        DelayUs(100);
-    }
-
-    if(sRegisteredExpectedCmd.validFlag == true)
-    {
-        expected_response->atCmdResponse.frameId = sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.frameId;
-        expected_response->atCmdResponse.commandStatus = sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandStatus;
-        if(sRegisteredExpectedCmd.appXbeeAtCmdResponse.commandDataLen > 0)
-        {
-            memcpy(expected_response->atCmdResponse.commandData, sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandData, sRegisteredExpectedCmd.appXbeeAtCmdResponse.commandDataLen);
-            expected_response->commandDataLen = sRegisteredExpectedCmd.appXbeeAtCmdResponse.commandDataLen;
-        }
-        sRegisteredExpectedCmd.validFlag = false;
-        return EXBEE_AT_CMD_OK;
-    }
-    else
-    {
-        LOG_ERR(("\nERR:: Expected Response timeout()"));
-        return -EXBEE_AT_CMD_EXPECTED_RESPONSE_TIMEOUT;
-    }
+    return ret;
 }
 
-s16 XbeeSendAtCommandExpectedResponse(AppXbeeAtCommandResponse *expected_response)
+s16 XbeeAtCommandExpectedResponse(AppXbeeAtCommandResponse *expected_response, u16 timeout_ms)
 {
-    u16 count = 0x00;
+    s16 count = 0x00;
 
     LOG_INFO0(("\n<< %s >>", __func__));
 
     // register expected response
-    if(sRegisteredExpectedCmd.validFlag == false)
+    if(sRegisteredExpectedCmd.availableFlag == false)
     {
         LOG_ERR(("\nERR:: sRegisteredExpectedCmd already in use"));
         return -EXBEE_AT_CMD_EXPECTED_IN_USE;
     }
 
+    sRegisteredExpectedCmd.availableFlag = false;
     sRegisteredExpectedCmd.validFlag = false;
     sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.atCommand = expected_response->atCmdResponse.atCommand;
 
-    while((count < 10) && (sRegisteredExpectedCmd.validFlag != true))
+    while((count < timeout_ms) && (sRegisteredExpectedCmd.validFlag != true))
     {
-        DelayUs(100);
+        DelayMs(1);
+        count++;
     }
 
     if(sRegisteredExpectedCmd.validFlag == true)
@@ -146,14 +118,18 @@ s16 XbeeSendAtCommandExpectedResponse(AppXbeeAtCommandResponse *expected_respons
         expected_response->atCmdResponse.commandStatus = sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandStatus;
         if(sRegisteredExpectedCmd.appXbeeAtCmdResponse.commandDataLen > 0)
         {
-            memcpy(expected_response->atCmdResponse.commandData, sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandData, sRegisteredExpectedCmd.appXbeeAtCmdResponse.commandDataLen);
+            expected_response->atCmdResponse.commandData = sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandData;
             expected_response->commandDataLen = sRegisteredExpectedCmd.appXbeeAtCmdResponse.commandDataLen;
         }
         sRegisteredExpectedCmd.validFlag = false;
+        sRegisteredExpectedCmd.availableFlag = true;
         return EXBEE_AT_CMD_OK;
     }
     else
     {
+        sRegisteredExpectedCmd.validFlag = false;
+        sRegisteredExpectedCmd.availableFlag = true;
+
         LOG_ERR(("\nERR:: Expected Response timeout()"));
         return -EXBEE_AT_CMD_EXPECTED_RESPONSE_TIMEOUT;
     }
