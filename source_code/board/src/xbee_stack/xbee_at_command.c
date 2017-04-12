@@ -20,6 +20,7 @@ void XbeeProcessAtCommandResponse(void *apdata)
     at_response.atCommand = (data[5] << 8) | data[6];
     at_response.commandStatus = data[7];
 
+    // cmd + frameId + atCommand(2) + commandStatus
     cmd_data_len = (len - 5);
 
     if(cmd_data_len > 0)
@@ -56,7 +57,8 @@ void XbeeProcessAtCommandResponse(void *apdata)
 
 s16 XbeeSendAtCommandRequest(AppXbeeAtCommandFrame *at_cmd_request)
 {
-    u16 len = (at_cmd_request->parameterLen + 4);           // cmd + frameId + AtCommand(2)
+    // cmd + frameId + AtCommand(2)
+    u16 len = (at_cmd_request->parameterLen + 4);
 
     LOG_INFO0(("\n<< %s >>", __func__));
 
@@ -78,7 +80,7 @@ s16 XbeeSendAtCommandRequestExpectedResponse(AppXbeeAtCommandFrame *app_at_cmd, 
     LOG_INFO0(("\n<< %s >>", __func__));
 
     ret = XbeeSendAtCommandRequest(app_at_cmd);
-    if(ret != EXBEE_AT_CMD_OK)
+    if(ret != EXBEE_OK)
     {
         LOG_ERR(("\nERR:: XbeeProcessAtCommandRequest():: %d", ret));
         return ret;
@@ -123,7 +125,7 @@ s16 XbeeAtCommandExpectedResponse(AppXbeeAtCommandResponse *expected_response, u
         }
         sRegisteredExpectedCmd.validFlag = false;
         sRegisteredExpectedCmd.availableFlag = true;
-        return EXBEE_AT_CMD_OK;
+        return EXBEE_OK;
     }
     else
     {

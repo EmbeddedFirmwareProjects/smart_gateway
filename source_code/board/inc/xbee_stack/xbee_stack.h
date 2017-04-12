@@ -86,22 +86,31 @@ typedef enum
 
 typedef enum
 {
-    TX_DISCOVERY_STATUs_NO_DISCOVERY_OVERHEAD       = 0x00,
-    TX_DISCOVERY_STATUs_ADDRESS_DISCOVERY           = 0x01,
-    TX_DISCOVERY_STATUs_ROUTE_DISCOVERY             = 0x02,
-    TX_DISCOVERY_STATUs_ADDRESS_AND_ROUTE           = 0x03,
-    TX_DISCOVERY_STATUs_EXTENDED_TIMEOUT_DISCOVERY  = 0x40,
+    TX_DISCOVERY_STATUS_NO_DISCOVERY_OVERHEAD       = 0x00,
+    TX_DISCOVERY_STATUS_ADDRESS_DISCOVERY           = 0x01,
+    TX_DISCOVERY_STATUS_ROUTE_DISCOVERY             = 0x02,
+    TX_DISCOVERY_STATUS_ADDRESS_AND_ROUTE           = 0x03,
+    TX_DISCOVERY_STATUS_EXTENDED_TIMEOUT_DISCOVERY  = 0x40,
 
     ZigbeeTransmitDiscoveryStatus_MAX,
 }ZigbeeTransmitDiscoveryStatus;
 
 typedef enum 
 {
-    EOK                 = 0x00,
-    EAPI_BACKUP,
-    ESTART_DELIMITER,
-    ECHECKSUM,
-    ECMDID,
+    EXBEE_OK            = 0x00,
+    EXBEE_API_BACKUP,
+    EXBEE_START_DELIMITER,
+    EXBEE_CHECKSUM,
+    EXBEE_CMDID,
+    EXBEE_AT_CMD_INVALID,
+    EXBEE_AT_CMD_EXPECTED_RESPONSE_TIMEOUT,
+    EXBEE_AT_CMD_EXPECTED_IN_USE,
+    EXBEE_AT_CMD_SEND,
+    EXBEE_ZIGBEE_TX_REQUEST_IN_USE,
+    EXBEE_ZIGBEE_TX_REQUEST_STATUS,
+    EXBEE_ZIGBEE_TX_REQUEST_STATUS_TIMEOUT,
+    EXBEE_ZIGBEE_TX_REQUEST,
+    EXBEE_ZIGBEE_EXPECTED_RESPONSE_TIMEOUT,
 
     XbeeStackError_MAX,
 }XbeeStackError;
@@ -144,14 +153,13 @@ typedef struct
     u8 frameId;
     u16 destinationAddress;             // plz note msb address should be 1st
     u8 transmitRetryCount;
-    ZigbeeTransmitDeliveryStatus deliveryStatus;
-    ZigbeeTransmitDiscoveryStatus discoveryStatus;
+    u8 deliveryStatus;
+    u8 discoveryStatus;
 }ZigbeeTransmitStatus;
         
 #define ZIGBEE_RECEIVE_PACKET_DATA_LEN(LEN) (LEN - 12)
 typedef struct 
 {
-    u8 frameId;
     u8 sourceAdress[8];                 // note:: msb address should be 1st
     u16 sourceNetworkAddress;           // note:: msb address should be 1st
     u8 receiveOption;

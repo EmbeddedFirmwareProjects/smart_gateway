@@ -3,18 +3,6 @@
 
 #include <xbee_stack.h>
 
-typedef enum
-{
-    EXBEE_AT_CMD_OK= 0x00,
-    EXBEE_AT_CMD_INVALID,
-    EXBEE_AT_CMD_EXPECTED_RESPONSE_TIMEOUT,
-    EXBEE_AT_CMD_EXPECTED_IN_USE,
-    EXBEE_AT_CMD_SEND_ERROR,
-
-    ErrXbeeAtCommand_MAX,
-}ErrXbeeAtCommand;
-
-
 typedef struct
 {
     AtCommandResponse atCmdResponse;

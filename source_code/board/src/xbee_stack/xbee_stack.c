@@ -4,45 +4,6 @@
 
 static ApiFramePacketBackup sApiPacketBackup[API_PACKET_BACKUP_SIZE];
 
-/*void processZigbeeTransmitStatus(void *apdata)
-{
-    u8 *data = (u8 *)apdata;
-    ZigbeeTransmitStatus transmit_status;
-
-    LOG_INFO0(("\n<< %s >>", __func__));
-
-    transmit_status.frameId = data[3];
-    transmit_status.destinationAddress = (data[4] << 8) | data[5];
-    transmit_status.transmitRetryCount = data[6];
-    transmit_status.deliveryStatus = data[7];
-    transmit_status.discoveryStatus = data[8];
-
-}
-
-void processZigbeeReceivePacket(void *apdata)
-{
-    u8 *data = (u8 *)apdata;
-    ZigbeeReceivePacket received_packet;
-    u16 api_len = 0x00;
-
-    LOG_INFO0(("\n<< %s >>", __func__));
-
-    received_packet.frameId = data[3];
-    received_packet.sourceAdress[0] = data[4];
-    received_packet.sourceAdress[1] = data[5];
-    received_packet.sourceAdress[2] = data[6];
-    received_packet.sourceAdress[3] = data[7];
-    received_packet.sourceAdress[4] = data[8];
-    received_packet.sourceAdress[5] = data[9];
-    received_packet.sourceAdress[6] = data[10];
-    received_packet.sourceAdress[7] = data[11];
-    received_packet.sourceNetworkAddress = (data[12] << 8) | data[13];
-    received_packet.receiveOption = data[14];
-    api_len = (data[1] << 8) | data[2];
-    memcpy(received_packet.receiveData, &data[15], ZIGBEE_RECEIVE_PACKET_DATA_LEN(api_len));
-
-}*/
-
 static s16 processFrameData(u8 *data)
 {
     u32 api_identifier_list_len = 0x00;
@@ -62,11 +23,11 @@ static s16 processFrameData(u8 *data)
 
     if(count > api_identifier_list_len)
     {
-        return -ECMDID;
+        return -EXBEE_CMDID;
     }
     else
     {
-        return EOK;
+        return EXBEE_OK;
     }
 }
 
@@ -97,21 +58,21 @@ static s16 validateApiFrame(u8 *data)
     // verify start delimiter
     if(data[0] != API_FRAME_START_DELIMITER) 
     {
-        return -ESTART_DELIMITER;
+        return -EXBEE_START_DELIMITER;
     }
     
     len = (data[1] << 8) | data[2];
     
     // verify checkSumexclude 
-    cal_check_sum = calculateCheckSum(&data[3], len);  // exclude checkSum
-    LOG_DBG(("\ncal_check_sum:: %x, checkSum:: %x", cal_check_sum, data[(len + 3)]));
+    cal_check_sum = calculateCheckSum(&data[3], len);  // exclude start delemiter, len (2) and checkSum
+    LOG_DBG(("\ncal_check_sum:: %x, checkSum:: %x", cal_check_sum, data[(len + 3)]));   // startDelimiter(1) + len(2)
     if(cal_check_sum == data[(len + 3)])     // startDelimiter(1) + len(2)
     {
-        return EOK;
+        return EXBEE_OK;
     }
     else
     {
-        return -ECHECKSUM;
+        return -EXBEE_CHECKSUM;
     }
 }
 
@@ -147,10 +108,10 @@ static s16 storeApiFrame(u8* pdata, u16 len, ApiFramePacketBackup **papiFrame_ba
             memcpy(sApiPacketBackup[count].buffer, pdata, len);
             sApiPacketBackup[count].usageFlag = true;
             *papiFrame_backup = &sApiPacketBackup[count];
-            return EOK;
+            return EXBEE_OK;
         }
     }
-    return -EAPI_BACKUP;
+    return -EXBEE_API_BACKUP;
 }
 
 void ProcessApiFrameResponse(u8* pdata, u16 len)
@@ -162,7 +123,7 @@ void ProcessApiFrameResponse(u8* pdata, u16 len)
     
     // backup api frame
     ret = storeApiFrame(pdata, len, &papiFrame_backup);
-    if(ret != EOK)
+    if(ret != EXBEE_OK)
     {
         LOG_ERR(("\nERR:: storeApiFrame():: %d", ret));
         return;
@@ -182,7 +143,7 @@ void ProcessApiFrameResponse(u8* pdata, u16 len)
     
     // validate api frame
     ret = validateApiFrame(papiFrame_backup->buffer);
-    if(ret != EOK)
+    if(ret != EXBEE_OK)
     {
         LOG_ERR(("\nERR:: validateApiFrame():: %d", ret));
         papiFrame_backup->usageFlag = false;
@@ -191,7 +152,7 @@ void ProcessApiFrameResponse(u8* pdata, u16 len)
     
     // process frame data
     ret = processFrameData(papiFrame_backup->buffer);
-    if(ret != EOK)
+    if(ret != EXBEE_OK)
     {
         LOG_ERR(("\nERR:: processFrameData():: %d", ret));
         papiFrame_backup->usageFlag = false;
@@ -208,7 +169,7 @@ s16 ProcessApiFrameRequest(u8* pdata, u16 len)
     pdata[1] = (len & 0xFF00) >> 8;
     pdata[2] = len & 0xFF;
 
-    pdata[len + 3] = calculateCheckSum(&pdata[3], len);
+    pdata[len + 3] = calculateCheckSum(&pdata[3], len); // exclude start delemiter + len (2)
 
     return SendApiFrameRequest(pdata, (len + 4));   // including start delimiter + len(2) + checksum
 }

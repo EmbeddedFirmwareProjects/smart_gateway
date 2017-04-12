@@ -2,7 +2,7 @@
 #define XBEE_STACK_PVT_H
 
 #include <comman.h>
-#include <xbee_at_command.h>
+//#include <xbee_at_command.h>
 
 typedef struct
 {
@@ -17,11 +17,13 @@ typedef struct
 }ApiIdentifierList;
 
 void XbeeProcessAtCommandResponse(void *apdata);
+void XbeeprocessZigbeeTransmitStatus(void *apdata);
+void XbeeprocessZigbeeReceivePacket(void *apdata);
 
 static ApiIdentifierList ProcessApiIdentifierList[] = {
     {AT_COMMAND_RESPONSE, XbeeProcessAtCommandResponse},
-    //{ZIGBEE_TRANSMIT_STATUS, processZigbeeTransmitStatus},
-    //{ZIGBEE_RECEIVE_PACKET, processZigbeeReceivePacket},
+    {ZIGBEE_TRANSMIT_STATUS, XbeeprocessZigbeeTransmitStatus},
+    {ZIGBEE_RECEIVE_PACKET, XbeeprocessZigbeeReceivePacket},
 };
 
 #endif 
