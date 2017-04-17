@@ -12,68 +12,54 @@ void XbeeProcessZigbeeReceivePacket(void *apdata)
     u16 len = 0x00;
     s16 rcv_data_len = 0x00;
     u8 *data = (u8 *)apdata;
-    ZigbeeReceivePacket zigbee_response;
+    AppXbeeZigbeeReceivePacket app_zigbee_response = {{{0}}};
 
     LOG_INFO0(("\n<< %s >>", __func__));
 
     len = (data[1] << 8) | data[2];
-    zigbee_response.sourceAdress[0] = data[4];
-    zigbee_response.sourceAdress[1] = data[5];
-    zigbee_response.sourceAdress[2] = data[6];
-    zigbee_response.sourceAdress[3] = data[7];
-    zigbee_response.sourceAdress[4] = data[8];
-    zigbee_response.sourceAdress[5] = data[9];
-    zigbee_response.sourceAdress[6] = data[10];
-    zigbee_response.sourceAdress[7] = data[11];
-    zigbee_response.sourceNetworkAddress = (data[12] << 8) | data[13];
-    zigbee_response.receiveOption = data[14];
+    app_zigbee_response.rfPacketResponse.sourceAdress[0] = data[4];
+    app_zigbee_response.rfPacketResponse.sourceAdress[1] = data[5];
+    app_zigbee_response.rfPacketResponse.sourceAdress[2] = data[6];
+    app_zigbee_response.rfPacketResponse.sourceAdress[3] = data[7];
+    app_zigbee_response.rfPacketResponse.sourceAdress[4] = data[8];
+    app_zigbee_response.rfPacketResponse.sourceAdress[5] = data[9];
+    app_zigbee_response.rfPacketResponse.sourceAdress[6] = data[10];
+    app_zigbee_response.rfPacketResponse.sourceAdress[7] = data[11];
+    app_zigbee_response.rfPacketResponse.sourceNetworkAddress = (data[12] << 8) | data[13];
+    app_zigbee_response.rfPacketResponse.receiveOption = data[14];
 
     // cmd + sourceAdress(8) + sourceNetworkAddress[2] + receiveOption
     rcv_data_len = (len - 12);
 
     if(rcv_data_len > 0)
     {
-        zigbee_response.receiveData = &data[15];
+        app_zigbee_response.rfPacketResponse.receiveData = &data[15];
     }
 
     if(sRegisteredExpectedCmd.availableFlag == false)
     {
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[0] = zigbee_response.sourceAdress[0];
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[1] = zigbee_response.sourceAdress[1];
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[2] = zigbee_response.sourceAdress[2];
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[3] = zigbee_response.sourceAdress[3];
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[4] = zigbee_response.sourceAdress[4];
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[5] = zigbee_response.sourceAdress[5];
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[6] = zigbee_response.sourceAdress[6];
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[7] = zigbee_response.sourceAdress[7];
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceNetworkAddress = zigbee_response.sourceNetworkAddress;
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.receiveOption = zigbee_response.receiveOption;
+        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[0] = app_zigbee_response.rfPacketResponse.sourceAdress[0];
+        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[1] = app_zigbee_response.rfPacketResponse.sourceAdress[1];
+        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[2] = app_zigbee_response.rfPacketResponse.sourceAdress[2];
+        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[3] = app_zigbee_response.rfPacketResponse.sourceAdress[3];
+        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[4] = app_zigbee_response.rfPacketResponse.sourceAdress[4];
+        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[5] = app_zigbee_response.rfPacketResponse.sourceAdress[5];
+        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[6] = app_zigbee_response.rfPacketResponse.sourceAdress[6];
+        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[7] = app_zigbee_response.rfPacketResponse.sourceAdress[7];
+        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceNetworkAddress = app_zigbee_response.rfPacketResponse.sourceNetworkAddress;
+        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.receiveOption = app_zigbee_response.rfPacketResponse.receiveOption;
 
         if(rcv_data_len > 0)
         {
-            sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.receiveData = zigbee_response.receiveData;
+            sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.receiveData = app_zigbee_response.rfPacketResponse.receiveData;
             sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.receiveDataLen = rcv_data_len;
         }
         sRegisteredExpectedCmd.validFlag = true;
     }
     else
     {
-        AppXbeeZigbeeReceivePacket app_zigbee_response = {{{0}}};
-
-        app_zigbee_response.rfPacketResponse.sourceAdress[0] = zigbee_response.sourceAdress[0];
-        app_zigbee_response.rfPacketResponse.sourceAdress[1] = zigbee_response.sourceAdress[1];
-        app_zigbee_response.rfPacketResponse.sourceAdress[2] = zigbee_response.sourceAdress[2];
-        app_zigbee_response.rfPacketResponse.sourceAdress[3] = zigbee_response.sourceAdress[3];
-        app_zigbee_response.rfPacketResponse.sourceAdress[4] = zigbee_response.sourceAdress[4];
-        app_zigbee_response.rfPacketResponse.sourceAdress[5] = zigbee_response.sourceAdress[5];
-        app_zigbee_response.rfPacketResponse.sourceAdress[6] = zigbee_response.sourceAdress[6];
-        app_zigbee_response.rfPacketResponse.sourceAdress[7] = zigbee_response.sourceAdress[7];
-        app_zigbee_response.rfPacketResponse.sourceNetworkAddress = zigbee_response.sourceNetworkAddress;
-        app_zigbee_response.rfPacketResponse.receiveOption = zigbee_response.receiveOption;
-
         if(rcv_data_len > 0)
         {
-            app_zigbee_response.rfPacketResponse.receiveData = zigbee_response.receiveData;
             app_zigbee_response.receiveDataLen = rcv_data_len;
         }
         XbeeZigbeeReceiveEventCallBack(&app_zigbee_response);

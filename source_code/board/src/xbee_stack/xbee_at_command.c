@@ -11,44 +11,38 @@ void XbeeProcessAtCommandResponse(void *apdata)
     u16 len = 0x00;
     s16 cmd_data_len = 0x00;
     u8 *data = (u8 *)apdata;
-    AtCommandResponse at_response;
+    AppXbeeAtCommandResponse app_at_cmd_response = {{0}};
 
     LOG_INFO0(("\n<< %s >>", __func__));
 
     len = (data[1] << 8) | data[2];
-    at_response.frameId = data[4];
-    at_response.atCommand = (data[5] << 8) | data[6];
-    at_response.commandStatus = data[7];
+    app_at_cmd_response.atCmdResponse.frameId = data[4];
+    app_at_cmd_response.atCmdResponse.atCommand = (data[5] << 8) | data[6];
+    app_at_cmd_response.atCmdResponse.commandStatus = data[7];
 
     // cmd + frameId + atCommand(2) + commandStatus
     cmd_data_len = (len - 5);
 
     if(cmd_data_len > 0)
     {
-        at_response.commandData = &data[8];
+        app_at_cmd_response.atCmdResponse.commandData = &data[8];
     }
 
-    if((sRegisteredExpectedCmd.availableFlag == false) && (sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.atCommand == at_response.atCommand))
+    if((sRegisteredExpectedCmd.availableFlag == false) && (sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.atCommand == app_at_cmd_response.atCmdResponse.atCommand))
     {
-        sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.frameId = at_response.frameId;
-        sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandStatus = at_response.commandStatus;
+        sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.frameId = app_at_cmd_response.atCmdResponse.frameId;
+        sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandStatus = app_at_cmd_response.atCmdResponse.commandStatus;
         if(cmd_data_len > 0)
         {
-            sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandData = at_response.commandData;
+            sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandData = app_at_cmd_response.atCmdResponse.commandData;
             sRegisteredExpectedCmd.appXbeeAtCmdResponse.commandDataLen = cmd_data_len;
         }
         sRegisteredExpectedCmd.validFlag = true;
     }
     else
     {
-        AppXbeeAtCommandResponse app_at_cmd_response = {{0}};
-
-        app_at_cmd_response.atCmdResponse.frameId = at_response.frameId;
-        app_at_cmd_response.atCmdResponse.atCommand = at_response.atCommand;
-        app_at_cmd_response.atCmdResponse.commandStatus = at_response.commandStatus;
         if(cmd_data_len > 0)
         {
-            app_at_cmd_response.atCmdResponse.commandData = at_response.commandData;
             app_at_cmd_response.commandDataLen = cmd_data_len;
         }
         XbeeAtCommandEventCallBack(&app_at_cmd_response);
