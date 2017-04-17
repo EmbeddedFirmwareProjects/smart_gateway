@@ -65,13 +65,13 @@ static s16 validateApiFrame(u8 *data)
     
     // verify checkSumexclude 
     cal_check_sum = calculateCheckSum(&data[3], len);  // exclude start delemiter, len (2) and checkSum
-    LOG_DBG(("\ncal_check_sum:: %x, checkSum:: %x", cal_check_sum, data[(len + 3)]));   // startDelimiter(1) + len(2)
     if(cal_check_sum == data[(len + 3)])     // startDelimiter(1) + len(2)
     {
         return EXBEE_OK;
     }
     else
     {
+        LOG_ERR(("\ncal_check_sum:: %x, checkSum:: %x", cal_check_sum, data[(len + 3)]));
         return -EXBEE_CHECKSUM;
     }
 }
@@ -128,7 +128,7 @@ void ProcessApiFrameResponse(u8* pdata, u16 len)
         LOG_ERR(("\nERR:: storeApiFrame():: %d", ret));
         return;
     }
-    
+
 #ifdef DEBUG_ENABLED
     {
         u16 count = 0x00;
@@ -158,6 +158,7 @@ void ProcessApiFrameResponse(u8* pdata, u16 len)
         papiFrame_backup->usageFlag = false;
         return;
     }
+    papiFrame_backup->usageFlag = false;
 }
 
 s16 ProcessApiFrameRequest(u8* pdata, u16 len)

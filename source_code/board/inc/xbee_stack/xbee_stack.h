@@ -7,20 +7,21 @@
 #define API_FRAME_START_DELIMITER 0x7E
 
 // ZIGBEE_TRANSMIT_REQUEST_OPTIONS
-#define OPTIONS_DISABLE_RETRIES 0x01
-#define OPTIONS_ENABLE_APS_ENCRYPTION 0x20
-#define OPTIONS_USE_EXTENDED_TRANSMISSION_TIMEOUT 0x40
-#define OPTIONS_ALL_UNUSED_AND_UNSUPPORTED 0x00
+#define ZIGBEE_OPTIONS_DISABLE_RETRIES 0x01
+#define ZIGBEE_OPTIONS_ENABLE_APS_ENCRYPTION 0x20
+#define ZIGBEE_OPTIONS_USE_EXTENDED_TRANSMISSION_TIMEOUT 0x40
+#define ZIGBEE_OPTIONS_ALL_UNUSED_AND_UNSUPPORTED 0x00
 
 // ZIGBEE_RECEIVE_PACKET_RECEIVE_OPTION
-#define OPTION_PACKET_ACKNOWLEDGED 0x01
-#define OPTION_PACKET_BROADCAST_PACKET 0x02
-#define OPTION_PACKET_ENCRYPTED_APS_ENCRYPTION 0x20
+#define ZIGBEE_OPTION_PACKET_ACKNOWLEDGED 0x01
+#define ZIGBEE_OPTION_PACKET_BROADCAST_PACKET 0x02
+#define ZIGBEE_OPTION_PACKET_ENCRYPTED_APS_ENCRYPTION 0x20
 
 // Api frame packet process
 #define API_PACKET_BACKUP_BUFFER_SIZE 200
 #define API_PACKET_REQUEST_BUFFER_SIZE 200
 #define API_PACKET_BACKUP_SIZE 3
+#define ZIGBEE_RECEIVE_PACKET_SOURCE_ADDRESS_LEN 8
 
 // AT COMMAND SETTINGS
 
@@ -157,11 +158,10 @@ typedef struct
     u8 discoveryStatus;
 }ZigbeeTransmitStatus;
         
-#define ZIGBEE_RECEIVE_PACKET_DATA_LEN(LEN) (LEN - 12)
 typedef struct 
 {
-    u8 sourceAdress[8];                 // note:: msb address should be 1st
-    u16 sourceNetworkAddress;           // note:: msb address should be 1st
+    u8 sourceAdress[ZIGBEE_RECEIVE_PACKET_SOURCE_ADDRESS_LEN];      // note:: msb address should be 1st
+    u16 sourceNetworkAddress;                                   // note:: msb address should be 1st
     u8 receiveOption;
     u8 *receiveData;
 }ZigbeeReceivePacket;

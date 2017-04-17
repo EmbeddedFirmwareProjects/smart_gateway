@@ -7,7 +7,7 @@ static u8 sZigbeeRfCommandRequestApiPacketBuffer[API_PACKET_REQUEST_BUFFER_SIZE]
 
 extern u16 ProcessApiFrameRequest(u8* pdata, u16 len);
 
-void XbeeprocessZigbeeReceivePacket(void *apdata)
+void XbeeProcessZigbeeReceivePacket(void *apdata)
 {
     u16 len = 0x00;
     s16 rcv_data_len = 0x00;
@@ -80,7 +80,7 @@ void XbeeprocessZigbeeReceivePacket(void *apdata)
     }
 }
 
-void XbeeprocessZigbeeTransmitStatus(void *apdata)
+void XbeeProcessZigbeeTransmitStatus(void *apdata)
 {
     u8 *data = (u8 *)apdata;
     ZigbeeTransmitStatus transmit_status;
@@ -153,6 +153,9 @@ s16 XbeeSendZigbeeTransmitRequest(AppXbeeZigbeeTransmitRequest *zigbee_tx_reques
     ret = ProcessApiFrameRequest(sZigbeeRfCommandRequestApiPacketBuffer, len);
     if(ret != 0x00)
     {
+        sResisgerZigbeeTransmitRequestStatus.validFlag = false;
+        sResisgerZigbeeTransmitRequestStatus.availableFlag = true;
+
         LOG_ERR(("\nERR:: ProcessApiFrameRequest(): %d", ret));
         return -EXBEE_ZIGBEE_TX_REQUEST;
     }
@@ -168,6 +171,8 @@ s16 XbeeSendZigbeeTransmitRequest(AppXbeeZigbeeTransmitRequest *zigbee_tx_reques
         if(sResisgerZigbeeTransmitRequestStatus.zigbeeTransmitStatus.deliveryStatus != TX_DELIVERY_STATUS_SUCCESS)
         {
             LOG_ERR(("\nERR:: zigbeeTransmitStatus.deliveryStatus: %d", sResisgerZigbeeTransmitRequestStatus.zigbeeTransmitStatus.deliveryStatus));
+            sResisgerZigbeeTransmitRequestStatus.validFlag = false;
+            sResisgerZigbeeTransmitRequestStatus.availableFlag = true;
             return -EXBEE_ZIGBEE_TX_REQUEST_STATUS;
         }
         sResisgerZigbeeTransmitRequestStatus.validFlag = false;
