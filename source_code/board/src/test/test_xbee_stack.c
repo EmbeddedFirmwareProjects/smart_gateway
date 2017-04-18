@@ -2,10 +2,12 @@
 #include <xbee_at_command.h>
 #include <xbee_zigbee_operations.h>
 
+#ifdef __linux__
 #include<pthread.h>
-
 static pthread_t tid;
 static pthread_t tid1;
+#endif
+
 static u8 *spApiFrame;
 static u16 sApiFrameLen;
 static u32 sApiFrameDelay;
@@ -31,7 +33,9 @@ static void TestSendThread(u32 delayed_time)
     int err = 0x00;
     sApiFrameDelay = delayed_time;
 
+#ifdef __linux__
     err = pthread_create(&tid, NULL, &ThreadSendApiFrame, NULL);
+#endif
     if (err != 0)
     {
         LOG_INFO(("\ncan't create thread :[%s]", strerror(err)));
@@ -42,7 +46,9 @@ static void TestSendThread1(u16 delayed_time)
     int err = 0x00;
     sApiFrameDelay1 = delayed_time;
 
+#ifdef __linux__
     err = pthread_create(&tid1, NULL, &ThreadSendApiFrame1, NULL);
+#endif
     if (err != 0)
     {
         LOG_INFO(("\ncan't create thread :[%s]", strerror(err)));

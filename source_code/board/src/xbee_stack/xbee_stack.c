@@ -56,7 +56,7 @@ static s16 validateApiFrame(u8 *data)
     LOG_INFO0(("\n<< %s >>", __func__));
     
     // verify start delimiter
-    if(data[0] != API_FRAME_START_DELIMITER) 
+    if(data[0] != XBEE_API_FRAME_START_DELIMITER)
     {
         return -EXBEE_START_DELIMITER;
     }
@@ -165,7 +165,7 @@ s16 ProcessApiFrameRequest(u8* pdata, u16 len)
 {
     LOG_INFO0(("\n<< %s >>", __func__));
 
-    pdata[0] = API_FRAME_START_DELIMITER;
+    pdata[0] = XBEE_API_FRAME_START_DELIMITER;
 
     pdata[1] = (len & 0xFF00) >> 8;
     pdata[2] = len & 0xFF;

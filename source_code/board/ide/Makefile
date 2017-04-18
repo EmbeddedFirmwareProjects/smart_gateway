@@ -7,11 +7,14 @@ LDFLAGS=-lpthread -lrt
 STRIP=$(CROSS_COMPILE)strip
 
 APP_SRC_PATH=../src/application
+PLATFORM_SRC_PATH=../src/platform
 XBEE_STACK_SRC_PATH=../src/xbee_stack
 UTILS_SRC_PATH=../src/utils
 TEST_SRC_PATH=../src/test
 
 SOURCES=$(APP_SRC_PATH)/main.c \
+	$(PLATFORM_SRC_PATH)/platform.c \
+	$(PLATFORM_SRC_PATH)/platform_usart.c \
 	$(XBEE_STACK_SRC_PATH)/xbee_stack.c \
 	$(XBEE_STACK_SRC_PATH)/xbee_at_command.c \
 	$(XBEE_STACK_SRC_PATH)/xbee_zigbee_operations.c \

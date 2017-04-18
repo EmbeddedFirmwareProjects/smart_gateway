@@ -1,12 +1,12 @@
 #include <stdio.h>
-#include <xbee_at_command.h>
-#include <xbee_zigbee_operations.h>
-#include <test_xbee_stack.h>
-
+#include <xbee_comman.h>
+#include <platform.h>
 
 int main (void) 
 {
-    testXbeeStack();
+    PlatformSystemInit();
+
+    PlatformPeripheralInit();
 
     printf("\n\n");
     return 0;
