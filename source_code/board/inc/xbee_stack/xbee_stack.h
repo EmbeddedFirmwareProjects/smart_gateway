@@ -99,7 +99,6 @@ typedef enum
 typedef enum 
 {
     EXBEE_OK            = 0x00,
-    EXBEE_API_BACKUP,
     EXBEE_START_DELIMITER,
     EXBEE_CHECKSUM,
     EXBEE_CMDID,
@@ -167,8 +166,7 @@ typedef struct
 }ZigbeeReceivePacket;
 
 
-void ProcessApiFrameResponse(u8* pdata, u16 len);
-s16 SendApiFrameRequest(u8* pdata, u16 len);   // should be defined in application layer
-void XbeeStackInit();
+void XbeeProcessApiFrameResponse(u8* pdata, u16 len);
+s16 XbeeSendApiFrameRequest(u8* pdata, u16 len);   // should be defined in application layer
 
 #endif

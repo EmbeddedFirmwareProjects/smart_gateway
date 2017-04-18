@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <xbee_comman.h>
 #include <platform.h>
+#include <test_xbee_stack.h>
 
 int main (void) 
 {
@@ -8,21 +9,9 @@ int main (void)
 
     PlatformPeripheralInit();
 
+    testXbeeStack();
+
     printf("\n\n");
-    return 0;
-}
-
-s16 SendApiFrameRequest(u8* pdata, u16 len)
-{
-    u16 count = 0x00;
-
-    LOG_INFO(("\n<< %s >>", __func__));
-
-    LOG_INFO(("\nSend Packet:: "));
-    for(count = 0x00; count < len; count++)
-    {
-        LOG_INFO((" %x", pdata[count]));
-    }
     return 0;
 }
 

@@ -1,6 +1,8 @@
 #ifndef _PLATFORM_USART_PVT_H_
 #define _PLATFORM_USART_PVT_H_
 
+#include <comman.h>
+
 #define USART_RX_BUFFER_LEN     200
 
 typedef enum
@@ -35,13 +37,16 @@ typedef enum
     UsartStopBit_MAX
 }UsartStopBit;
 
-typedef struct
+typedef struct __tag_UsartConfigSetting UsartConfigSetting;
+struct __tag_UsartConfigSetting
 {
     UsartChannel channel;
     UsartBaudrate baudRate;
     UsartParity parity;
     UsartStopBit stopBit;
     void (*pRxFunc)(u8 *, u16);
-}UsartConfigSetting;
+    void (*pInitFunc)(UsartConfigSetting *);
+    s16 (*pTxFunc)(u8 *, u16);
+};
 
 #endif

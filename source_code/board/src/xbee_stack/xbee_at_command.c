@@ -4,7 +4,7 @@
 static ResisgerExpectedXbeeAtCmdResponse sRegisteredExpectedCmd = {true, false};
 static u8 sAtCommandRequestApiPacketBuffer[API_PACKET_REQUEST_BUFFER_SIZE] = {0};
 
-extern u16 ProcessApiFrameRequest(u8* pdata, u16 len);
+extern u16 XbeeProcessApiFrameRequest(u8* pdata, u16 len);
 
 void XbeeProcessAtCommandResponse(void *apdata)
 {
@@ -64,7 +64,7 @@ s16 XbeeSendAtCommandRequest(AppXbeeAtCommandFrame *at_cmd_request)
     {
         memcpy(&sAtCommandRequestApiPacketBuffer[7], at_cmd_request->atCmdFrame.parameterValue, at_cmd_request->parameterLen);
     }
-    return ProcessApiFrameRequest(sAtCommandRequestApiPacketBuffer, len);
+    return XbeeProcessApiFrameRequest(sAtCommandRequestApiPacketBuffer, len);
 }
 
 s16 XbeeSendAtCommandRequestExpectedResponse(AppXbeeAtCommandFrame *app_at_cmd, AppXbeeAtCommandResponse *expected_response, u16 timeout_ms)

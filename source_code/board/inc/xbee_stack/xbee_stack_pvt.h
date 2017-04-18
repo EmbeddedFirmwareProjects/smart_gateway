@@ -5,12 +5,6 @@
 
 typedef struct
 {
-    u8 usageFlag;
-    u8 buffer[API_PACKET_BACKUP_BUFFER_SIZE];
-}ApiFramePacketBackup;
-
-typedef struct
-{
     u8 apiIdentifier;
     void(*pFunc)(void*);
 }ApiIdentifierList;

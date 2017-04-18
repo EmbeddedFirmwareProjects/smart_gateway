@@ -18,13 +18,13 @@ static u32 sApiFrameDelay1;
 static void * ThreadSendApiFrame(void *data)
 {
     DelayMs(sApiFrameDelay);
-    ProcessApiFrameResponse(spApiFrame, sApiFrameLen);
+    XbeeProcessApiFrameResponse(spApiFrame, sApiFrameLen);
     pthread_exit(0);
 }
 static void * ThreadSendApiFrame1(void *data)
 {
     DelayMs(sApiFrameDelay1);
-    ProcessApiFrameResponse(spApiFrame1, sApiFrameLen1);
+    XbeeProcessApiFrameResponse(spApiFrame1, sApiFrameLen1);
     pthread_exit(0);
 }
 
@@ -62,7 +62,7 @@ static void TestAtCmdProcessApiFrameResponse()
 
     LOG_INFO(("\nTestValidFrame:: "));
     u8 api_frame[] = {0x7E, 0x00, 0x07, AT_COMMAND_RESPONSE, 0x01, 'D', 'H', 0x00, 0x02, 0x01, 0xe7};
-    ProcessApiFrameResponse(api_frame, (u16)sizeof(api_frame));
+    XbeeProcessApiFrameResponse(api_frame, (u16)sizeof(api_frame));
 }
 
 static void TestXbeeSendAtCommandRequest()
@@ -202,7 +202,7 @@ static void TestZigbeeProcessApiFrameResponse()
     {
         LOG_INFO((" %x", api_frame[count]));
     }
-    ProcessApiFrameResponse(api_frame, (u16)sizeof(api_frame));
+    XbeeProcessApiFrameResponse(api_frame, (u16)sizeof(api_frame));
 }
 
 static void TestXbeeSendZigbeeTransmitRequest()
@@ -351,8 +351,6 @@ void TestZigbeeOperations()
 
 void testXbeeStack(void)
 {
-    XbeeStackInit();
-
     TestAtCommandOperations();
 
     TestZigbeeOperations();

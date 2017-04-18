@@ -5,7 +5,7 @@ static ResisgerExpectedZigbeeRfCommandResponse sRegisteredExpectedCmd = {true, f
 static ResisgerZigbeeTransmitRequestStatus sResisgerZigbeeTransmitRequestStatus = {true, false};
 static u8 sZigbeeRfCommandRequestApiPacketBuffer[API_PACKET_REQUEST_BUFFER_SIZE] = {0};
 
-extern u16 ProcessApiFrameRequest(u8* pdata, u16 len);
+extern u16 XbeeProcessApiFrameRequest(u8* pdata, u16 len);
 
 void XbeeProcessZigbeeReceivePacket(void *apdata)
 {
@@ -136,7 +136,7 @@ s16 XbeeSendZigbeeTransmitRequest(AppXbeeZigbeeTransmitRequest *zigbee_tx_reques
         memcpy(&sZigbeeRfCommandRequestApiPacketBuffer[17], zigbee_tx_request->rfTransmitRequest.rfData, zigbee_tx_request->rfDataLen);
     }
 
-    ret = ProcessApiFrameRequest(sZigbeeRfCommandRequestApiPacketBuffer, len);
+    ret = XbeeProcessApiFrameRequest(sZigbeeRfCommandRequestApiPacketBuffer, len);
     if(ret != 0x00)
     {
         sResisgerZigbeeTransmitRequestStatus.validFlag = false;

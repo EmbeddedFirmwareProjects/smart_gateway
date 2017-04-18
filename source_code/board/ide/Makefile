@@ -15,6 +15,7 @@ TEST_SRC_PATH=../src/test
 SOURCES=$(APP_SRC_PATH)/main.c \
 	$(PLATFORM_SRC_PATH)/platform.c \
 	$(PLATFORM_SRC_PATH)/platform_usart.c \
+	$(PLATFORM_SRC_PATH)/platform_linux_usart.c \
 	$(XBEE_STACK_SRC_PATH)/xbee_stack.c \
 	$(XBEE_STACK_SRC_PATH)/xbee_at_command.c \
 	$(XBEE_STACK_SRC_PATH)/xbee_zigbee_operations.c \
