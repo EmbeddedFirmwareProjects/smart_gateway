@@ -3,7 +3,7 @@
 
 static ResisgerExpectedZigbeeRfCommandResponse sRegisteredExpectedCmd = {true, false};
 static ResisgerZigbeeTransmitRequestStatus sResisgerZigbeeTransmitRequestStatus = {true, false};
-static u8 sZigbeeRfCommandRequestApiPacketBuffer[API_PACKET_REQUEST_BUFFER_SIZE] = {0};
+static u8 sZigbeeRfCommandRequestApiPacketBuffer[API_FRAME_REQUEST_BUFFER_SIZE] = {0};
 
 extern u16 XbeeProcessApiFrameRequest(u8* pdata, u16 len);
 
@@ -62,7 +62,7 @@ void XbeeProcessZigbeeReceivePacket(void *apdata)
         {
             app_zigbee_response.receiveDataLen = rcv_data_len;
         }
-        XbeeZigbeeReceiveEventCallBack(&app_zigbee_response);
+        XbeeZigbeeReceiveEventHandler(&app_zigbee_response);
     }
 }
 

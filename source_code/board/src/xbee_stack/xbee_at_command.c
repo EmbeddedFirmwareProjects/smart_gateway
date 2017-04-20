@@ -2,7 +2,7 @@
 #include <xbee_at_command.h>
 
 static ResisgerExpectedXbeeAtCmdResponse sRegisteredExpectedCmd = {true, false};
-static u8 sAtCommandRequestApiPacketBuffer[API_PACKET_REQUEST_BUFFER_SIZE] = {0};
+static u8 sAtCommandRequestApiPacketBuffer[API_FRAME_REQUEST_BUFFER_SIZE] = {0};
 
 extern u16 XbeeProcessApiFrameRequest(u8* pdata, u16 len);
 
@@ -45,7 +45,7 @@ void XbeeProcessAtCommandResponse(void *apdata)
         {
             app_at_cmd_response.commandDataLen = cmd_data_len;
         }
-        XbeeAtCommandEventCallBack(&app_at_cmd_response);
+        XbeeAtCommandEventHandler(&app_at_cmd_response);
     }
 }
 

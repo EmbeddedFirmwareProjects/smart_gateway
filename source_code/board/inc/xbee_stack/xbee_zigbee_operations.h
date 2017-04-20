@@ -34,6 +34,6 @@ s16 XbeeSendZigbeeTransmitRequest(AppXbeeZigbeeTransmitRequest *zigbee_tx_reques
 s16 XbeeSendZigbeeTransmitRequestExpectedResponse(AppXbeeZigbeeTransmitRequest *zigbee_tx_request, AppXbeeZigbeeReceivePacket *zigbee_response, u16 timeout_ms);
 
 s16 XbeeZigbeeExpectedResponse(AppXbeeZigbeeReceivePacket *zigbee_response, u16 timeout_ms);
-void XbeeZigbeeReceiveEventCallBack(AppXbeeZigbeeReceivePacket *zigbee_response);     // should be defined in application layer
+void XbeeZigbeeReceiveEventHandler(AppXbeeZigbeeReceivePacket *zigbee_response);     // should be defined in application layer
 
 #endif

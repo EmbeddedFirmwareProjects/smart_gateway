@@ -1,16 +1,23 @@
 
 #include <comman.h>
+#include <platform.h>
 #include <platform_usart.h>
 
-void PlatformSystemInit(void)
+
+s16 PlatformSystemInit(void)
 {
     LOG_INFO0(("\n<< %s >>", __func__));
+    return 0;
 }
 
-void PlatformPeripheralInit(void)
+s16 PlatformPeripheralInit(void)
 {
     LOG_INFO0(("\n<< %s >>", __func__));
 
-    PlatformUsartInit();
+    return 0;
+}
 
+s16 XbeePlatformInit(PlatformOperations *platform_operations)
+{
+    return PlatformUsartInit(CHANNEL_XBEE, platform_operations);
 }

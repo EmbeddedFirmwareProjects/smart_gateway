@@ -13,6 +13,7 @@ UTILS_SRC_PATH=../src/utils
 TEST_SRC_PATH=../src/test
 
 SOURCES=$(APP_SRC_PATH)/main.c \
+	$(APP_SRC_PATH)/xbee_application.c \
 	$(PLATFORM_SRC_PATH)/platform.c \
 	$(PLATFORM_SRC_PATH)/platform_usart.c \
 	$(PLATFORM_SRC_PATH)/platform_linux_usart.c \

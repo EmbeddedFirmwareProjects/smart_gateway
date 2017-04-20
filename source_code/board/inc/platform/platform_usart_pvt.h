@@ -2,16 +2,11 @@
 #define _PLATFORM_USART_PVT_H_
 
 #include <comman.h>
+#include <platform_usart.h>
+
 
 #define USART_RX_BUFFER_LEN     200
 
-typedef enum
-{
-    CHANNEL_XBEE,
-    CHANNEL_USER_COMMN,
-
-    UsartChannel_MAX
-}UsartChannel;
 
 typedef enum
 {
@@ -37,6 +32,7 @@ typedef enum
     UsartStopBit_MAX
 }UsartStopBit;
 
+
 typedef struct __tag_UsartConfigSetting UsartConfigSetting;
 struct __tag_UsartConfigSetting
 {
@@ -44,8 +40,8 @@ struct __tag_UsartConfigSetting
     UsartBaudrate baudRate;
     UsartParity parity;
     UsartStopBit stopBit;
+    s16 (*pInitFunc)(UsartConfigSetting *);
     void (*pRxFunc)(u8 *, u16);
-    void (*pInitFunc)(UsartConfigSetting *);
     s16 (*pTxFunc)(u8 *, u16);
 };
 
