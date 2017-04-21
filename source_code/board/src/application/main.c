@@ -11,7 +11,11 @@ int main (void)
 
     XbeeApplicationInit();
 
-    XbeeHouseKeeping();
+    while(1)
+    {
+        XbeeHouseKeeping();
+        DelayMs(200);
+    }
 
     printf("\n\n");
     return 0;

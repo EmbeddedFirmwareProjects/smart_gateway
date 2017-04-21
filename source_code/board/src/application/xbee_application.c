@@ -89,6 +89,7 @@ s16 XbeeSendApiFrameRequest(u8* pdata, u16 len)
 void XbeeAtCommandEventHandler(AppXbeeAtCommandResponse *at_cmd_response)
 {
     u16 count = 0x00;
+
     LOG_INFO(("\n<< %s >>", __func__));
 
     LOG_INFO(("\nRx AT Command:: "));
