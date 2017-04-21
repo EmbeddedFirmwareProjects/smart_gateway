@@ -7,7 +7,7 @@ static s16 processFrameData(u8 *data)
     u32 api_identifier_list_len = 0x00;
     u32 count = 0x00;
 
-    LOG_INFO0(("\n<< %s >>", __func__));
+    LOG_INFO0(("<< %s >>\n", __func__));
 
     api_identifier_list_len = sizeof(ProcessApiIdentifierList)/sizeof(ApiIdentifierList);
 
@@ -34,7 +34,7 @@ static u8 calculateCheckSum(u8 *apapi_frame, u16 len)
     long check_sum = 0x00;
     u16 count = 0x00;
     
-    LOG_INFO0(("\n<< %s >>", __func__));
+    LOG_INFO0(("<< %s >>\n", __func__));
     
     while(count < len)
     {
@@ -51,7 +51,7 @@ static s16 validateApiFrame(u8 *data)
     u16 len = 0x00;
     u8 cal_check_sum = 0x00;
     
-    LOG_INFO0(("\n<< %s >>", __func__));
+    LOG_INFO0(("<< %s >>\n", __func__));
     
     // verify start delimiter
     if(data[0] != XBEE_API_FRAME_START_DELIMITER)
@@ -69,7 +69,7 @@ static s16 validateApiFrame(u8 *data)
     }
     else
     {
-        LOG_ERR(("\ncal_check_sum:: %x, checkSum:: %x", cal_check_sum, data[(len + 3)]));
+        LOG_ERR(("ERR:: cal_check_sum:: %x, checkSum:: %x\n", cal_check_sum, data[(len + 3)]));
         return -EXBEE_CHECKSUM;
     }
 }
@@ -78,13 +78,13 @@ void XbeeProcessApiFrameResponse(u8* pdata, u16 len)
 {
     s16 ret = 0x00;
         
-    LOG_INFO0(("\n<< %s >>", __func__));
+    LOG_INFO0(("<< %s >>\n", __func__));
     
 #ifdef DEBUG_ENABLED
     {
         u16 count = 0x00;
         u16 len = (pdata[1] << 8) | pdata[2];
-        LOG_DBG(("\nRx Packet:: "));
+        LOG_DBG(("Rx Packet:: "));
         for(count = 0x00; count < (len + 4); count++)
         {
             LOG_DBG((" %x", pdata[count]));
@@ -96,7 +96,7 @@ void XbeeProcessApiFrameResponse(u8* pdata, u16 len)
     ret = validateApiFrame(pdata);
     if(ret != EXBEE_OK)
     {
-        LOG_ERR(("\nERR:: validateApiFrame():: %d", ret));
+        LOG_ERR(("ERR:: validateApiFrame():: %d\n", ret));
         return;
     }
     
@@ -104,14 +104,14 @@ void XbeeProcessApiFrameResponse(u8* pdata, u16 len)
     ret = processFrameData(pdata);
     if(ret != EXBEE_OK)
     {
-        LOG_ERR(("\nERR:: processFrameData():: %d", ret));
+        LOG_ERR(("ERR:: processFrameData():: %d\n", ret));
         return;
     }
 }
 
 s16 XbeeProcessApiFrameRequest(u8* pdata, u16 len)
 {
-    LOG_INFO0(("\n<< %s >>", __func__));
+    LOG_INFO0(("<< %s >>\n", __func__));
 
     pdata[0] = XBEE_API_FRAME_START_DELIMITER;
 

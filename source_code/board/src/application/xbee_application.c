@@ -30,7 +30,7 @@ static void NotifyXbeeApiFrameResponse(u8 *pdata, u16 len)
 {
     u16 count = 0x00;
 
-    LOG_INFO0(("\n<< %s >>", __func__));
+    LOG_INFO0(("<< %s >>\n", __func__));
 
     if (pdata == '\0')      // reset previous incomplete packet on receive failure
     {
@@ -81,7 +81,7 @@ static void NotifyXbeeApiFrameResponse(u8 *pdata, u16 len)
 
 s16 XbeeSendApiFrameRequest(u8* pdata, u16 len)
 {
-    LOG_INFO0(("\n<< %s >>", __func__));
+    LOG_INFO0(("<< %s >>\n", __func__));
 
     return sXbeePlatformOperations.pTxFunc(pdata, len);
 }
@@ -90,9 +90,9 @@ void XbeeAtCommandEventHandler(AppXbeeAtCommandResponse *at_cmd_response)
 {
     u16 count = 0x00;
 
-    LOG_INFO(("\n<< %s >>", __func__));
+    LOG_INFO(("<< %s >>\n", __func__));
 
-    LOG_INFO(("\nRx AT Command:: "));
+    LOG_INFO(("Rx AT Command:: "));
     LOG_INFO((" %x", at_cmd_response->atCmdResponse.frameId));
     LOG_INFO((" %x", at_cmd_response->atCmdResponse.atCommand >> 8));
     LOG_INFO((" %x", at_cmd_response->atCmdResponse.atCommand & 0xFF));
@@ -102,29 +102,6 @@ void XbeeAtCommandEventHandler(AppXbeeAtCommandResponse *at_cmd_response)
         for(count = 0x00; count < at_cmd_response->commandDataLen; count++)
         {
             LOG_INFO((" %x", at_cmd_response->atCmdResponse.commandData[count]));
-        }
-    }
-}
-
-void XbeeZigbeeReceiveEventHandler(AppXbeeZigbeeReceivePacket *zigbee_response)
-{
-    u16 count = 0x00;
-    LOG_INFO(("\n<< %s >>", __func__));
-
-    LOG_INFO(("\nRx ZigbeePacket::"));
-    for(count = 0x00; count < ZIGBEE_RECEIVE_PACKET_SOURCE_ADDRESS_LEN; count++)
-    {
-        LOG_INFO((" %x", zigbee_response->rfPacketResponse.sourceAdress[count]));
-    }
-    LOG_INFO((" %x", (zigbee_response->rfPacketResponse.sourceNetworkAddress >> 8) & 0xFF));
-    LOG_INFO((" %x", (zigbee_response->rfPacketResponse.sourceNetworkAddress) & 0xFF));
-    LOG_INFO((" %x", zigbee_response->rfPacketResponse.receiveOption));
-
-    if(zigbee_response->receiveDataLen > 0)
-    {
-        for(count = 0x00; count < zigbee_response->receiveDataLen; count++)
-        {
-            LOG_INFO((" %x", zigbee_response->rfPacketResponse.receiveData[count]));
         }
     }
 }

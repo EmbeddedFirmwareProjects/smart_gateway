@@ -7,4 +7,7 @@
 #include <app_config.h>
 #include <timer.h>
 
+
+#define ENUM_DETAILS(enum_val, enum_Description)    enum_val
+
 #endif
