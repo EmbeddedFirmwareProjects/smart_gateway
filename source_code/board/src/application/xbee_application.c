@@ -30,7 +30,7 @@ static void NotifyXbeeApiFrameResponse(u8 *pdata, u16 len)
 {
     u16 count = 0x00;
 
-    LOG_INFO0(("<< %s >>\n", __func__));
+    LOG_INFO0(("\n<< %s >>", __func__));
 
     if (pdata == '\0')      // reset previous incomplete packet on receive failure
     {
@@ -81,7 +81,7 @@ static void NotifyXbeeApiFrameResponse(u8 *pdata, u16 len)
 
 s16 XbeeSendApiFrameRequest(u8* pdata, u16 len)
 {
-    LOG_INFO0(("<< %s >>\n", __func__));
+    LOG_INFO0(("\n<< %s >>", __func__));
 
     return sXbeePlatformOperations.pTxFunc(pdata, len);
 }
@@ -90,9 +90,9 @@ void XbeeAtCommandEventHandler(AppXbeeAtCommandResponse *at_cmd_response)
 {
     u16 count = 0x00;
 
-    LOG_INFO(("<< %s >>\n", __func__));
+    LOG_INFO(("\n<< %s >>", __func__));
 
-    LOG_INFO(("Rx AT Command:: "));
+    LOG_INFO(("\nRx AT Command:: "));
     LOG_INFO((" %x", at_cmd_response->atCmdResponse.frameId));
     LOG_INFO((" %x", at_cmd_response->atCmdResponse.atCommand >> 8));
     LOG_INFO((" %x", at_cmd_response->atCmdResponse.atCommand & 0xFF));

@@ -23,7 +23,7 @@ s16 PlatformUsartInit(u8 usart_channel, PlatformOperations *platform_operations)
     u16 config_list = 0x00;
     s16 ret = 0x00;
 
-    LOG_INFO0(("<< %s >>\n", __func__));
+    LOG_INFO0(("\n<< %s >>", __func__));
 
     config_list = sizeof(sUsartConfigList)/sizeof(UsartConfigSetting);
 
@@ -37,7 +37,7 @@ s16 PlatformUsartInit(u8 usart_channel, PlatformOperations *platform_operations)
                 ret = sUsartConfigList[count].pInitFunc(&sUsartConfigList[count]);
                 if(ret != EUSART_OK)
                 {
-                    LOG_ERR(("ERR:: PlatformUsartInit(): init() failure %d\n", ret));
+                    LOG_ERR(("\nERR:: PlatformUsartInit(): init() failure %d", ret));
                     return ret;
                 }
                 platform_operations->pTxFunc = sUsartConfigList[count].pTxFunc;
@@ -45,7 +45,7 @@ s16 PlatformUsartInit(u8 usart_channel, PlatformOperations *platform_operations)
             }
             else
             {
-                LOG_ERR(("ERR:: invalid init()  %d\n", ret));
+                LOG_ERR(("\nERR:: invalid pInitFunc"));
                 return -EUSART_INVALID_INIT_PFUNC;
             }
         }

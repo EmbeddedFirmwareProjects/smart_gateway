@@ -7,9 +7,9 @@ void XbeeZigbeeReceiveEventHandler(AppXbeeZigbeeReceivePacket *zigbee_response)
 {
     u16 count = 0x00;
 
-    LOG_INFO0(("<< %s >>\n", __func__));
+    LOG_INFO0(("\n<< %s >>", __func__));
 
-    LOG_INFO(("Rx ZigbeePacket:: "));
+    LOG_INFO(("\nRx ZigbeePacket:: "));
     for(count = 0x00; count < ZIGBEE_RECEIVE_PACKET_SOURCE_ADDRESS_LEN; count++)
     {
         LOG_INFO((" %x", zigbee_response->rfPacketResponse.sourceAdress[count]));
@@ -24,7 +24,6 @@ void XbeeZigbeeReceiveEventHandler(AppXbeeZigbeeReceivePacket *zigbee_response)
         {
             LOG_INFO((" %x", zigbee_response->rfPacketResponse.receiveData[count]));
         }
-        LOG_INFO(("\n"));
     }
 
     // validate network address

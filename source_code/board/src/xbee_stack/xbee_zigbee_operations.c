@@ -14,7 +14,7 @@ void XbeeProcessZigbeeReceivePacket(void *apdata)
     u8 *data = (u8 *)apdata;
     AppXbeeZigbeeReceivePacket app_zigbee_response = {{{0}}};
 
-    LOG_INFO0(("<< %s >>\n", __func__));
+    LOG_INFO0(("\n<< %s >>", __func__));
 
     len = (data[1] << 8) | data[2];
     app_zigbee_response.rfPacketResponse.sourceAdress[0] = data[4];
@@ -71,7 +71,7 @@ void XbeeProcessZigbeeTransmitStatus(void *apdata)
     u8 *data = (u8 *)apdata;
     ZigbeeTransmitStatus transmit_status;
 
-    LOG_INFO0(("<< %s >>\n", __func__));
+    LOG_INFO0(("\n<< %s >>", __func__));
 
     transmit_status.frameId = data[4];
     transmit_status.destinationAddress = (data[5] << 8) | data[6];
@@ -98,12 +98,12 @@ s16 XbeeSendZigbeeTransmitRequest(AppXbeeZigbeeTransmitRequest *zigbee_tx_reques
     s16 ret = 0x00;
     s16 count = 0x00;
 
-    LOG_INFO0(("<< %s >>\n", __func__));
+    LOG_INFO0(("\n<< %s >>", __func__));
 
     // check Zigbee Transmit Request Status
     if(sResisgerZigbeeTransmitRequestStatus.availableFlag == false)
     {
-        LOG_ERR(("ERR:: sResisgerZigbeeTransmitRequestStatus already in use\n"));
+        LOG_ERR(("\nERR:: sResisgerZigbeeTransmitRequestStatus already in use"));
         return -EXBEE_ZIGBEE_TX_REQUEST_IN_USE;
     }
 
@@ -142,7 +142,7 @@ s16 XbeeSendZigbeeTransmitRequest(AppXbeeZigbeeTransmitRequest *zigbee_tx_reques
         sResisgerZigbeeTransmitRequestStatus.validFlag = false;
         sResisgerZigbeeTransmitRequestStatus.availableFlag = true;
 
-        LOG_ERR(("ERR:: ProcessApiFrameRequest(): %d\n", ret));
+        LOG_ERR(("\nERR:: ProcessApiFrameRequest(): %d", ret));
         return -EXBEE_ZIGBEE_TX_REQUEST;
     }
 
@@ -156,7 +156,7 @@ s16 XbeeSendZigbeeTransmitRequest(AppXbeeZigbeeTransmitRequest *zigbee_tx_reques
     {
         if(sResisgerZigbeeTransmitRequestStatus.zigbeeTransmitStatus.deliveryStatus != TX_DELIVERY_STATUS_SUCCESS)
         {
-            LOG_ERR(("ERR:: zigbeeTransmitStatus.deliveryStatus: %d\n", sResisgerZigbeeTransmitRequestStatus.zigbeeTransmitStatus.deliveryStatus));
+            LOG_ERR(("\nERR:: zigbeeTransmitStatus.deliveryStatus: %d", sResisgerZigbeeTransmitRequestStatus.zigbeeTransmitStatus.deliveryStatus));
             sResisgerZigbeeTransmitRequestStatus.validFlag = false;
             sResisgerZigbeeTransmitRequestStatus.availableFlag = true;
             return -EXBEE_ZIGBEE_TX_REQUEST_STATUS;
@@ -170,7 +170,7 @@ s16 XbeeSendZigbeeTransmitRequest(AppXbeeZigbeeTransmitRequest *zigbee_tx_reques
         sResisgerZigbeeTransmitRequestStatus.validFlag = false;
         sResisgerZigbeeTransmitRequestStatus.availableFlag = true;
 
-        LOG_ERR(("ERR:: ZigbeeTransmitRequestStatus timeout()\n"));
+        LOG_ERR(("\nERR:: ZigbeeTransmitRequestStatus timeout()"));
         return -EXBEE_ZIGBEE_TX_REQUEST_STATUS_TIMEOUT;
     }
 }
@@ -179,12 +179,12 @@ s16 XbeeSendZigbeeTransmitRequestExpectedResponse(AppXbeeZigbeeTransmitRequest *
 {
     s16 ret = 0x00;
 
-    LOG_INFO0(("<< %s >>\n", __func__));
+    LOG_INFO0(("\n<< %s >>", __func__));
 
     ret = XbeeSendZigbeeTransmitRequest(zigbee_tx_request, timeout_ms);
     if(ret != EXBEE_OK)
     {
-        LOG_ERR(("ERR:: XbeeSendZigbeeTransmitRequest():: %d\n", ret));
+        LOG_ERR(("\nERR:: XbeeSendZigbeeTransmitRequest():: %d", ret));
         return ret;
     }
 
@@ -197,12 +197,12 @@ s16 XbeeZigbeeExpectedResponse(AppXbeeZigbeeReceivePacket *zigbee_response, u16 
 {
     s16 count = 0x00;
 
-    LOG_INFO0(("<< %s >>\n", __func__));
+    LOG_INFO0(("\n<< %s >>", __func__));
 
     // register expected response
     if(sRegisteredExpectedCmd.availableFlag == false)
     {
-        LOG_ERR(("ERR:: sRegisteredExpectedCmd already in use\n"));
+        LOG_ERR(("\nERR:: sRegisteredExpectedCmd already in use"));
         return -EXBEE_AT_CMD_EXPECTED_IN_USE;
     }
 
@@ -242,7 +242,7 @@ s16 XbeeZigbeeExpectedResponse(AppXbeeZigbeeReceivePacket *zigbee_response, u16 
         sRegisteredExpectedCmd.validFlag = false;
         sRegisteredExpectedCmd.availableFlag = true;
 
-        LOG_ERR(("ERR:: Zigbee Expected Response timeout()\n"));
+        LOG_ERR(("\nERR:: Zigbee Expected Response timeout()"));
         return -EXBEE_ZIGBEE_EXPECTED_RESPONSE_TIMEOUT;
     }
 }

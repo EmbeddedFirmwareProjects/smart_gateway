@@ -16,7 +16,7 @@ static pthread_t sUsartRxtid;
 static void * ThreadUsartRx(void *data)
 {
     u32 rx_bytes = 0x00;
-    LOG_INFO(("<< %s >>\n", __func__));
+    LOG_INFO(("\n<< %s >>", __func__));
 
     while(1)
     {
@@ -38,12 +38,12 @@ static void StartUsartRxThread(void)
 {
     int err = 0x00;
 
-    LOG_INFO(("<< %s >>\n", __func__));
+    LOG_INFO(("\n<< %s >>", __func__));
 
     err = pthread_create(&sUsartRxtid, NULL, &ThreadUsartRx, NULL);
     if (err != 0)
     {
-        LOG_INFO(("can't create thread :[%s]\n", strerror(err)));
+        LOG_INFO(("\ncan't create thread :[%s]", strerror(err)));
     }
 }
 
@@ -51,7 +51,7 @@ static s16 LinuxSerialSend(u8 *pdata, u16 len)
 {
     u16 count = 0x00;
 
-    LOG_INFO(("<< %s >>\n", __func__));
+    LOG_INFO(("\n<< %s >>", __func__));
 
     LOG_INFO(("\nSend Packet:: "));
     for(count = 0x00; count < len; count++)
@@ -68,7 +68,7 @@ s16 LinuxSerialInit(UsartConfigSetting *usart_setting)
 {
     u32 bdrate=9600;
 
-    LOG_INFO(("<< %s >>\n", __func__));
+    LOG_INFO(("\n<< %s >>", __func__));
 
     usart_setting->pTxFunc = LinuxSerialSend;
     sLinuxUsartSetting = usart_setting;
@@ -76,7 +76,7 @@ s16 LinuxSerialInit(UsartConfigSetting *usart_setting)
     sUsartPort = RS232_OpenComport(sUsartPortFile, bdrate);
     if(sUsartPort < 0 )
     {
-        LOG_ERR(("ERR:: RS232_OpenComport(): Can not open physical_port\n"));
+        LOG_ERR(("\nERR:: RS232_OpenComport(): Can not open physical_port"));
 
         return -EUSART_PLATFORM_INIT_FUNC;
     }

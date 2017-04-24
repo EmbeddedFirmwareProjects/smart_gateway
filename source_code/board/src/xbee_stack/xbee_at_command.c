@@ -13,7 +13,7 @@ void XbeeProcessAtCommandResponse(void *apdata)
     u8 *data = (u8 *)apdata;
     AppXbeeAtCommandResponse app_at_cmd_response = {{0}};
 
-    LOG_INFO0(("<< %s >>\n", __func__));
+    LOG_INFO0(("\n<< %s >>", __func__));
 
     len = (data[1] << 8) | data[2];
     app_at_cmd_response.atCmdResponse.frameId = data[4];
@@ -54,7 +54,7 @@ s16 XbeeSendAtCommandRequest(AppXbeeAtCommandFrame *at_cmd_request)
     // cmd + frameId + AtCommand(2)
     u16 len = (at_cmd_request->parameterLen + 4);
 
-    LOG_INFO0(("<< %s >>\n", __func__));
+    LOG_INFO0(("\n<< %s >>", __func__));
 
     sAtCommandRequestApiPacketBuffer[3] = AT_COMMAND;
     sAtCommandRequestApiPacketBuffer[4] = at_cmd_request->atCmdFrame.frameId;
@@ -71,12 +71,12 @@ s16 XbeeSendAtCommandRequestExpectedResponse(AppXbeeAtCommandFrame *app_at_cmd, 
 {
     s16 ret = 0x00;
 
-    LOG_INFO0(("<< %s >>\n", __func__));
+    LOG_INFO0(("\n<< %s >>", __func__));
 
     ret = XbeeSendAtCommandRequest(app_at_cmd);
     if(ret != EXBEE_OK)
     {
-        LOG_ERR(("ERR:: XbeeProcessAtCommandRequest():: %d\n", ret));
+        LOG_ERR(("\nERR:: XbeeProcessAtCommandRequest():: %d", ret));
         return ret;
     }
 
@@ -89,12 +89,12 @@ s16 XbeeAtCommandExpectedResponse(AppXbeeAtCommandResponse *expected_response, u
 {
     s16 count = 0x00;
 
-    LOG_INFO0(("<< %s >>\n", __func__));
+    LOG_INFO0(("\n<< %s >>", __func__));
 
     // register expected response
     if(sRegisteredExpectedCmd.availableFlag == false)
     {
-        LOG_ERR(("ERR:: sRegisteredExpectedCmd already in use\n"));
+        LOG_ERR(("\nERR:: sRegisteredExpectedCmd already in use"));
         return -EXBEE_AT_CMD_EXPECTED_IN_USE;
     }
 
@@ -126,7 +126,7 @@ s16 XbeeAtCommandExpectedResponse(AppXbeeAtCommandResponse *expected_response, u
         sRegisteredExpectedCmd.validFlag = false;
         sRegisteredExpectedCmd.availableFlag = true;
 
-        LOG_ERR(("ERR:: Expected Response timeout()\n"));
+        LOG_ERR(("\nERR:: Expected Response timeout()"));
         return -EXBEE_AT_CMD_EXPECTED_RESPONSE_TIMEOUT;
     }
 }
