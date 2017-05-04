@@ -2,7 +2,9 @@
 #ifndef XBEE_STACK_H
 #define XBEE_STACK_H
 
+
 #include <comman.h>
+
 
 #define XBEE_API_FRAME_START_DELIMITER 0x7E
 
@@ -164,8 +166,11 @@ typedef struct
     u8 *receiveData;
 }ZigbeeReceivePacket;
 
+extern u8 FrameIdCounter;
+
+s16 XbeeStackInit(void);
 
 void XbeeProcessApiFrameResponse(u8* pdata, u16 len);
-s16 XbeeSendApiFrameRequest(u8* pdata, u16 len);   // should be defined in application layer
+s16 XbeeProcessApiFrameRequest(u8* pdata, u16 len);
 
 #endif

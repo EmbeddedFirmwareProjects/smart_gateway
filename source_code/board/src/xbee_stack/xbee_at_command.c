@@ -1,10 +1,7 @@
 
 #include <xbee_at_command.h>
 
-static ResisgerExpectedXbeeAtCmdResponse sRegisteredExpectedCmd = {true, false};
 static u8 sAtCommandRequestApiPacketBuffer[API_FRAME_REQUEST_BUFFER_SIZE] = {0};
-
-extern u16 XbeeProcessApiFrameRequest(u8* pdata, u16 len);
 
 void XbeeProcessAtCommandResponse(void *apdata)
 {
@@ -26,26 +23,12 @@ void XbeeProcessAtCommandResponse(void *apdata)
     if(cmd_data_len > 0)
     {
         app_at_cmd_response.atCmdResponse.commandData = &data[8];
-    }
-
-    if((sRegisteredExpectedCmd.availableFlag == false) && (sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.atCommand == app_at_cmd_response.atCmdResponse.atCommand))
-    {
-        sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.frameId = app_at_cmd_response.atCmdResponse.frameId;
-        sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandStatus = app_at_cmd_response.atCmdResponse.commandStatus;
-        if(cmd_data_len > 0)
-        {
-            sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandData = app_at_cmd_response.atCmdResponse.commandData;
-            sRegisteredExpectedCmd.appXbeeAtCmdResponse.commandDataLen = cmd_data_len;
-        }
-        sRegisteredExpectedCmd.validFlag = true;
+        app_at_cmd_response.commandDataLen = cmd_data_len;
+        XbeeAtCommandEventHandler(&app_at_cmd_response);
     }
     else
     {
-        if(cmd_data_len > 0)
-        {
-            app_at_cmd_response.commandDataLen = cmd_data_len;
-        }
-        XbeeAtCommandEventHandler(&app_at_cmd_response);
+        LOG_ERR(("\nERR:: XbeeProcessAtCommandResponse() Invalid rcv_data_len: %d", cmd_data_len));
     }
 }
 
@@ -57,7 +40,7 @@ s16 XbeeSendAtCommandRequest(AppXbeeAtCommandFrame *at_cmd_request)
     LOG_INFO0(("\n<< %s >>", __func__));
 
     sAtCommandRequestApiPacketBuffer[3] = AT_COMMAND;
-    sAtCommandRequestApiPacketBuffer[4] = at_cmd_request->atCmdFrame.frameId;
+    sAtCommandRequestApiPacketBuffer[4] = FrameIdCounter++;
     sAtCommandRequestApiPacketBuffer[5] = (at_cmd_request->atCmdFrame.atCommand & 0xFF00) >> 8;
     sAtCommandRequestApiPacketBuffer[6] = (at_cmd_request->atCmdFrame.atCommand & 0xFF);
     if(at_cmd_request->parameterLen > 0)
@@ -67,67 +50,22 @@ s16 XbeeSendAtCommandRequest(AppXbeeAtCommandFrame *at_cmd_request)
     return XbeeProcessApiFrameRequest(sAtCommandRequestApiPacketBuffer, len);
 }
 
-s16 XbeeSendAtCommandRequestExpectedResponse(AppXbeeAtCommandFrame *app_at_cmd, AppXbeeAtCommandResponse *expected_response, u16 timeout_ms)
+void XbeeAtCommandEventHandler(AppXbeeAtCommandResponse *at_cmd_response)
 {
-    s16 ret = 0x00;
+    u16 count = 0x00;
 
-    LOG_INFO0(("\n<< %s >>", __func__));
+    LOG_INFO(("\n<< %s >>", __func__));
 
-    ret = XbeeSendAtCommandRequest(app_at_cmd);
-    if(ret != EXBEE_OK)
+    LOG_INFO(("\nRx AT Command:: "));
+    LOG_INFO((" %x", at_cmd_response->atCmdResponse.frameId));
+    LOG_INFO((" %x", at_cmd_response->atCmdResponse.atCommand >> 8));
+    LOG_INFO((" %x", at_cmd_response->atCmdResponse.atCommand & 0xFF));
+
+    if(at_cmd_response->commandDataLen > 0)
     {
-        LOG_ERR(("\nERR:: XbeeProcessAtCommandRequest():: %d", ret));
-        return ret;
-    }
-
-    ret = XbeeAtCommandExpectedResponse(expected_response, timeout_ms);
-
-    return ret;
-}
-
-s16 XbeeAtCommandExpectedResponse(AppXbeeAtCommandResponse *expected_response, u16 timeout_ms)
-{
-    s16 count = 0x00;
-
-    LOG_INFO0(("\n<< %s >>", __func__));
-
-    // register expected response
-    if(sRegisteredExpectedCmd.availableFlag == false)
-    {
-        LOG_ERR(("\nERR:: sRegisteredExpectedCmd already in use"));
-        return -EXBEE_AT_CMD_EXPECTED_IN_USE;
-    }
-
-    sRegisteredExpectedCmd.availableFlag = false;
-    sRegisteredExpectedCmd.validFlag = false;
-    sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.atCommand = expected_response->atCmdResponse.atCommand;
-
-    while((count < timeout_ms) && (sRegisteredExpectedCmd.validFlag != true))
-    {
-        DelayMs(1);
-        count++;
-    }
-
-    if(sRegisteredExpectedCmd.validFlag == true)
-    {
-        expected_response->atCmdResponse.frameId = sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.frameId;
-        expected_response->atCmdResponse.commandStatus = sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandStatus;
-        if(sRegisteredExpectedCmd.appXbeeAtCmdResponse.commandDataLen > 0)
+        for(count = 0x00; count < at_cmd_response->commandDataLen; count++)
         {
-            expected_response->atCmdResponse.commandData = sRegisteredExpectedCmd.appXbeeAtCmdResponse.atCmdResponse.commandData;
-            expected_response->commandDataLen = sRegisteredExpectedCmd.appXbeeAtCmdResponse.commandDataLen;
+            LOG_INFO((" %x", at_cmd_response->atCmdResponse.commandData[count]));
         }
-        sRegisteredExpectedCmd.validFlag = false;
-        sRegisteredExpectedCmd.availableFlag = true;
-        return EXBEE_OK;
-    }
-    else
-    {
-        sRegisteredExpectedCmd.validFlag = false;
-        sRegisteredExpectedCmd.availableFlag = true;
-
-        LOG_ERR(("\nERR:: Expected Response timeout()"));
-        return -EXBEE_AT_CMD_EXPECTED_RESPONSE_TIMEOUT;
     }
 }
-

@@ -4,6 +4,5 @@
 
 #include <xbee_at_command.h>
 #include <xbee_zigbee_operations.h>
-#include <xbee_application.h>
 
 #endif

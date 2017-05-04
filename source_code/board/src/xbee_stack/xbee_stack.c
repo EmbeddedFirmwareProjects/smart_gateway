@@ -1,6 +1,22 @@
 
-#include <xbee_stack.h>
+#include <xbee_comman.h>
 #include <xbee_stack_pvt.h>
+#include <platform.h>
+
+
+u8 FrameIdCounter = 0x01;
+
+static s16 XbeeSendApiFrameRequest(u8* pdata, u16 len);
+static void NotifyXbeeApiFrameResponse(u8 *pdata, u16 len);
+
+
+static u8 sXbeeRxBuffer[API_FRAME_RESPONSE_BUFFER_SIZE] = {0};
+static u16 sXbeePushPointer = 0x00;
+static u16 sXbeeFrameLen = 0x00;
+static PlatformOperations sXbeePlatformOperations = {
+        .pRxFunc = NotifyXbeeApiFrameResponse,
+};
+
 
 static s16 processFrameData(u8 *data)
 {
@@ -62,7 +78,7 @@ static s16 validateApiFrame(u8 *data)
     len = (data[1] << 8) | data[2];
     
     // verify checkSumexclude 
-    cal_check_sum = calculateCheckSum(&data[3], len);  // exclude start delemiter, len (2) and checkSum
+    cal_check_sum = calculateCheckSum(&data[3], len);  // exclude start delimiter, len (2) and checkSum
     if(cal_check_sum == data[(len + 3)])     // startDelimiter(1) + len(2)
     {
         return EXBEE_OK;
@@ -123,3 +139,70 @@ s16 XbeeProcessApiFrameRequest(u8* pdata, u16 len)
     return XbeeSendApiFrameRequest(pdata, (len + 4));   // including start delimiter + len(2) + checksum
 }
 
+
+s16 XbeeSendApiFrameRequest(u8* pdata, u16 len)
+{
+    LOG_INFO0(("\n<< %s >>", __func__));
+
+    return sXbeePlatformOperations.pTxFunc(pdata, len);
+}
+
+static void NotifyXbeeApiFrameResponse(u8 *pdata, u16 len)
+{
+    u16 count = 0x00;
+
+    LOG_INFO0(("\n<< %s >>", __func__));
+
+    if (pdata == '\0')      // reset previous incomplete packet on receive failure
+    {
+        sXbeePushPointer = 0x00;
+        sXbeeFrameLen = 0x00;
+        return ;
+    }
+
+    for(count = 0x00; count < len; count++)
+    {
+        if((pdata[count] == XBEE_API_FRAME_START_DELIMITER) && (sXbeePushPointer == 0x00))
+        {
+            memset(sXbeeRxBuffer, 0x00, sizeof(sXbeeRxBuffer));
+            sXbeeRxBuffer[sXbeePushPointer++] = pdata[count];
+        }
+        else if(sXbeePushPointer > 0x00)
+        {
+            sXbeeRxBuffer[sXbeePushPointer] = pdata[count];
+
+            if(sXbeePushPointer == 0x01)
+            {
+                sXbeeFrameLen |= (pdata[count] << 8) & 0xFF00;
+            }
+            else if(sXbeePushPointer == 0x02)
+            {
+                sXbeeFrameLen |= pdata[count] & 0x00FF;
+            }
+            if(sXbeePushPointer > 2)
+            {
+                if(((sXbeeFrameLen + 4) - 1) == sXbeePushPointer)     // start delimiter(1) + len(2) + data bytes(n) + checksum(1)
+                {
+                    XbeeProcessApiFrameResponse(sXbeeRxBuffer, sXbeePushPointer);
+                    sXbeePushPointer = 0x00;
+                    sXbeeFrameLen = 0x00;
+                    LOG_INFO(("\n"));
+                }
+                else
+                {
+                    sXbeePushPointer++;
+                }
+            }
+            else
+            {
+                sXbeePushPointer++;
+            }
+        }
+    }
+}
+
+s16 XbeeStackInit(void)
+{
+    XbeeZigbeeInit();
+    return XbeePlatformInit(&sXbeePlatformOperations);
+}

@@ -6,7 +6,7 @@
 #include<pthread.h>
 
 
-static s8 *sUsartPortFile = "/dev/pts/11";
+static s8 *sUsartPortFile = "/dev/pts/19";
 static u32 sUsartPort = 0x00;
 static UsartConfigSetting *sLinuxUsartSetting = '\0';
 static u8 sUsartRxBuffer[4096];

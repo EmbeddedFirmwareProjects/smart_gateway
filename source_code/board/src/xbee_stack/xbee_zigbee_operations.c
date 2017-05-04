@@ -1,11 +1,11 @@
 
+#include <xbee_stack.h>
 #include <xbee_zigbee_operations.h>
+#include <smart_power_stack.h>
 
-static ResisgerExpectedZigbeeRfCommandResponse sRegisteredExpectedCmd = {true, false};
-static ResisgerZigbeeTransmitRequestStatus sResisgerZigbeeTransmitRequestStatus = {true, false};
+
 static u8 sZigbeeRfCommandRequestApiPacketBuffer[API_FRAME_REQUEST_BUFFER_SIZE] = {0};
 
-extern u16 XbeeProcessApiFrameRequest(u8* pdata, u16 len);
 
 void XbeeProcessZigbeeReceivePacket(void *apdata)
 {
@@ -34,35 +34,12 @@ void XbeeProcessZigbeeReceivePacket(void *apdata)
     if(rcv_data_len > 0)
     {
         app_zigbee_response.rfPacketResponse.receiveData = &data[15];
-    }
-
-    if(sRegisteredExpectedCmd.availableFlag == false)
-    {
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[0] = app_zigbee_response.rfPacketResponse.sourceAdress[0];
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[1] = app_zigbee_response.rfPacketResponse.sourceAdress[1];
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[2] = app_zigbee_response.rfPacketResponse.sourceAdress[2];
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[3] = app_zigbee_response.rfPacketResponse.sourceAdress[3];
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[4] = app_zigbee_response.rfPacketResponse.sourceAdress[4];
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[5] = app_zigbee_response.rfPacketResponse.sourceAdress[5];
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[6] = app_zigbee_response.rfPacketResponse.sourceAdress[6];
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[7] = app_zigbee_response.rfPacketResponse.sourceAdress[7];
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceNetworkAddress = app_zigbee_response.rfPacketResponse.sourceNetworkAddress;
-        sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.receiveOption = app_zigbee_response.rfPacketResponse.receiveOption;
-
-        if(rcv_data_len > 0)
-        {
-            sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.receiveData = app_zigbee_response.rfPacketResponse.receiveData;
-            sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.receiveDataLen = rcv_data_len;
-        }
-        sRegisteredExpectedCmd.validFlag = true;
+        app_zigbee_response.receiveDataLen = rcv_data_len;
+        XbeeZigbeeReceiveEventHandler(&app_zigbee_response);
     }
     else
     {
-        if(rcv_data_len > 0)
-        {
-            app_zigbee_response.receiveDataLen = rcv_data_len;
-        }
-        XbeeZigbeeReceiveEventHandler(&app_zigbee_response);
+        LOG_ERR(("\nERR:: XbeeProcessZigbeeReceivePacket() Invalid rcv_data_len: %d", rcv_data_len));
     }
 }
 
@@ -79,45 +56,28 @@ void XbeeProcessZigbeeTransmitStatus(void *apdata)
     transmit_status.deliveryStatus = data[8];
     transmit_status.discoveryStatus = data[9];
 
-    if(sResisgerZigbeeTransmitRequestStatus.availableFlag == false)
+    if(transmit_status.deliveryStatus != TX_DELIVERY_STATUS_SUCCESS)
     {
-        if(sResisgerZigbeeTransmitRequestStatus.zigbeeTransmitStatus.frameId == transmit_status.frameId)
-        {
-            sResisgerZigbeeTransmitRequestStatus.zigbeeTransmitStatus.frameId = transmit_status.frameId;
-            sResisgerZigbeeTransmitRequestStatus.zigbeeTransmitStatus.destinationAddress = transmit_status.destinationAddress;
-            sResisgerZigbeeTransmitRequestStatus.zigbeeTransmitStatus.deliveryStatus = transmit_status.deliveryStatus;
-            sResisgerZigbeeTransmitRequestStatus.zigbeeTransmitStatus.discoveryStatus = transmit_status.discoveryStatus;
-            sResisgerZigbeeTransmitRequestStatus.validFlag = true;
-        }
+        LOG_ERR(("\nERR:: XbeeProcessZigbeeTransmitStatus() failed to transmit: %x %x %x %x %x %x", data[4], data[5], data[6], data[7], data[8], data[9]));
+    }
+    else
+    {
+        LOG_INFO(("\nXbeeProcessZigbeeTransmitStatus() transmitted successfully: %x %x %x %x %x %x", data[4], data[5], data[6], data[7], data[8], data[9]));
     }
 }
 
-s16 XbeeSendZigbeeTransmitRequest(AppXbeeZigbeeTransmitRequest *zigbee_tx_request, u16 timeout_ms)
+s16 XbeeSendZigbeeTransmitRequest(AppXbeeZigbeeTransmitRequest *zigbee_tx_request)
 {
     u16 len = 0x00;
     s16 ret = 0x00;
-    s16 count = 0x00;
 
     LOG_INFO0(("\n<< %s >>", __func__));
-
-    // check Zigbee Transmit Request Status
-    if(sResisgerZigbeeTransmitRequestStatus.availableFlag == false)
-    {
-        LOG_ERR(("\nERR:: sResisgerZigbeeTransmitRequestStatus already in use"));
-        return -EXBEE_ZIGBEE_TX_REQUEST_IN_USE;
-    }
-
-    // register Zigbee Transmit Request Status
-    sResisgerZigbeeTransmitRequestStatus.availableFlag = false;
-    sResisgerZigbeeTransmitRequestStatus.validFlag = false;
-
-    sResisgerZigbeeTransmitRequestStatus.zigbeeTransmitStatus.frameId = zigbee_tx_request->rfTransmitRequest.frameId;
 
     // cmd + frameId + destinationAddr(8) + destinationNetworkAddress[2] + broadcastRadius + options
     len = (zigbee_tx_request->rfDataLen + 14);
 
     sZigbeeRfCommandRequestApiPacketBuffer[3]   = ZIGBEE_TRANSMIT_REQUEST;
-    sZigbeeRfCommandRequestApiPacketBuffer[4]   = zigbee_tx_request->rfTransmitRequest.frameId;
+    sZigbeeRfCommandRequestApiPacketBuffer[4]   = FrameIdCounter++;
     sZigbeeRfCommandRequestApiPacketBuffer[5]   = zigbee_tx_request->rfTransmitRequest.destinationAdress[0];
     sZigbeeRfCommandRequestApiPacketBuffer[6]   = zigbee_tx_request->rfTransmitRequest.destinationAdress[1];
     sZigbeeRfCommandRequestApiPacketBuffer[7]   = zigbee_tx_request->rfTransmitRequest.destinationAdress[2];
@@ -139,110 +99,44 @@ s16 XbeeSendZigbeeTransmitRequest(AppXbeeZigbeeTransmitRequest *zigbee_tx_reques
     ret = XbeeProcessApiFrameRequest(sZigbeeRfCommandRequestApiPacketBuffer, len);
     if(ret != 0x00)
     {
-        sResisgerZigbeeTransmitRequestStatus.validFlag = false;
-        sResisgerZigbeeTransmitRequestStatus.availableFlag = true;
-
         LOG_ERR(("\nERR:: ProcessApiFrameRequest(): %d", ret));
         return -EXBEE_ZIGBEE_TX_REQUEST;
     }
-
-    while((count < timeout_ms) && (sResisgerZigbeeTransmitRequestStatus.validFlag != true))
-    {
-        DelayMs(1);
-        count++;
-    }
-
-    if(sResisgerZigbeeTransmitRequestStatus.validFlag == true)
-    {
-        if(sResisgerZigbeeTransmitRequestStatus.zigbeeTransmitStatus.deliveryStatus != TX_DELIVERY_STATUS_SUCCESS)
-        {
-            LOG_ERR(("\nERR:: zigbeeTransmitStatus.deliveryStatus: %d", sResisgerZigbeeTransmitRequestStatus.zigbeeTransmitStatus.deliveryStatus));
-            sResisgerZigbeeTransmitRequestStatus.validFlag = false;
-            sResisgerZigbeeTransmitRequestStatus.availableFlag = true;
-            return -EXBEE_ZIGBEE_TX_REQUEST_STATUS;
-        }
-        sResisgerZigbeeTransmitRequestStatus.validFlag = false;
-        sResisgerZigbeeTransmitRequestStatus.availableFlag = true;
-        return EXBEE_OK;
-    }
-    else
-    {
-        sResisgerZigbeeTransmitRequestStatus.validFlag = false;
-        sResisgerZigbeeTransmitRequestStatus.availableFlag = true;
-
-        LOG_ERR(("\nERR:: ZigbeeTransmitRequestStatus timeout()"));
-        return -EXBEE_ZIGBEE_TX_REQUEST_STATUS_TIMEOUT;
-    }
+    return EXBEE_OK;
 }
 
-s16 XbeeSendZigbeeTransmitRequestExpectedResponse(AppXbeeZigbeeTransmitRequest *zigbee_tx_request, AppXbeeZigbeeReceivePacket *zigbee_response, u16 timeout_ms)
+void XbeeZigbeeReceiveEventHandler(AppXbeeZigbeeReceivePacket *zigbee_response)
 {
-    s16 ret = 0x00;
+    u16 count = 0x00;
 
     LOG_INFO0(("\n<< %s >>", __func__));
 
-    ret = XbeeSendZigbeeTransmitRequest(zigbee_tx_request, timeout_ms);
-    if(ret != EXBEE_OK)
+    LOG_INFO(("\nRx ZigbeePacket:: "));
+    for(count = 0x00; count < ZIGBEE_RECEIVE_PACKET_SOURCE_ADDRESS_LEN; count++)
     {
-        LOG_ERR(("\nERR:: XbeeSendZigbeeTransmitRequest():: %d", ret));
-        return ret;
+        LOG_INFO((" %x", zigbee_response->rfPacketResponse.sourceAdress[count]));
     }
+    LOG_INFO((" %x", (zigbee_response->rfPacketResponse.sourceNetworkAddress >> 8) & 0xFF));
+    LOG_INFO((" %x", (zigbee_response->rfPacketResponse.sourceNetworkAddress) & 0xFF));
+    LOG_INFO((" %x", zigbee_response->rfPacketResponse.receiveOption));
 
-    ret = XbeeZigbeeExpectedResponse(zigbee_response, timeout_ms);
-
-    return ret;
-}
-
-s16 XbeeZigbeeExpectedResponse(AppXbeeZigbeeReceivePacket *zigbee_response, u16 timeout_ms)
-{
-    s16 count = 0x00;
-
-    LOG_INFO0(("\n<< %s >>", __func__));
-
-    // register expected response
-    if(sRegisteredExpectedCmd.availableFlag == false)
+    if(zigbee_response->receiveDataLen > 0)
     {
-        LOG_ERR(("\nERR:: sRegisteredExpectedCmd already in use"));
-        return -EXBEE_AT_CMD_EXPECTED_IN_USE;
-    }
-
-    sRegisteredExpectedCmd.availableFlag = false;
-    sRegisteredExpectedCmd.validFlag = false;
-
-    while((count < timeout_ms) && (sRegisteredExpectedCmd.validFlag != true))
-    {
-        DelayMs(1);
-        count++;
-    }
-
-    if(sRegisteredExpectedCmd.validFlag == true)
-    {
-        zigbee_response->rfPacketResponse.sourceAdress[0] = sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[0];
-        zigbee_response->rfPacketResponse.sourceAdress[1] = sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[1];
-        zigbee_response->rfPacketResponse.sourceAdress[2] = sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[2];
-        zigbee_response->rfPacketResponse.sourceAdress[3] = sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[3];
-        zigbee_response->rfPacketResponse.sourceAdress[4] = sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[4];
-        zigbee_response->rfPacketResponse.sourceAdress[5] = sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[5];
-        zigbee_response->rfPacketResponse.sourceAdress[6] = sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[6];
-        zigbee_response->rfPacketResponse.sourceAdress[7] = sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceAdress[7];
-        zigbee_response->rfPacketResponse.sourceNetworkAddress = sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.sourceNetworkAddress;
-        zigbee_response->rfPacketResponse.receiveOption = sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.receiveOption;
-
-        if(sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.receiveDataLen > 0)
+        for(count = 0x00; count < zigbee_response->receiveDataLen; count++)
         {
-            zigbee_response->rfPacketResponse.receiveData = sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.rfPacketResponse.receiveData;
-            zigbee_response->receiveDataLen = sRegisteredExpectedCmd.appXbeeZigbeeReceivePacket.receiveDataLen;
+            LOG_INFO((" %x", zigbee_response->rfPacketResponse.receiveData[count]));
         }
-        sRegisteredExpectedCmd.validFlag = false;
-        sRegisteredExpectedCmd.availableFlag = true;
-        return EXBEE_OK;
     }
-    else
-    {
-        sRegisteredExpectedCmd.validFlag = false;
-        sRegisteredExpectedCmd.availableFlag = true;
 
-        LOG_ERR(("\nERR:: Zigbee Expected Response timeout()"));
-        return -EXBEE_ZIGBEE_EXPECTED_RESPONSE_TIMEOUT;
-    }
+    // validate network address
+
+
+    // Process Smart Power Packet
+    SmartPowerStackProcessCommand(zigbee_response->rfPacketResponse.receiveData, zigbee_response->receiveDataLen);
 }
+
+void XbeeZigbeeInit(void)
+{
+    //revert network address from memory
+}
+

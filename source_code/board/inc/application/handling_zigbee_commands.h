@@ -1,7 +1,0 @@
-#ifndef HANDLING_ZIGBEE_COMMANDS_H
-#define HANDLING_ZIGBEE_COMMANDS_H
-
-
-
-
-#endif

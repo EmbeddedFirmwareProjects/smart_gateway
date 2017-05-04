@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <platform.h>
-#include <xbee_application.h>
+#include <xbee_comman.h>
 
 
 int main (void) 
@@ -9,11 +9,10 @@ int main (void)
 
     PlatformPeripheralInit();
 
-    XbeeApplicationInit();
+    XbeeStackInit();
 
     while(1)
     {
-        XbeeHouseKeeping();
         DelayMs(200);
     }
 
