@@ -13,7 +13,7 @@ int main (void)
 
     while(1)
     {
-        DelayMs(200);
+        XbeeHouseKeeping();
     }
 
     printf("\n\n");

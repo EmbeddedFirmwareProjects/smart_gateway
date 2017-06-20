@@ -20,6 +20,7 @@
 #define ZIGBEE_OPTION_PACKET_ENCRYPTED_APS_ENCRYPTION 0x20
 
 // Api frame packet process
+#define API_FRAME_MAX_RECEIVE_PACKET_SIZE 50    // as per smart power application
 #define API_FRAME_RESPONSE_BUFFER_SIZE 200
 #define API_FRAME_REQUEST_BUFFER_SIZE 200
 #define ZIGBEE_RECEIVE_PACKET_SOURCE_ADDRESS_LEN 8
@@ -169,6 +170,7 @@ typedef struct
 extern u8 FrameIdCounter;
 
 s16 XbeeStackInit(void);
+void XbeeHouseKeeping(void);
 
 void XbeeProcessApiFrameResponse(u8* pdata, u16 len);
 s16 XbeeProcessApiFrameRequest(u8* pdata, u16 len);

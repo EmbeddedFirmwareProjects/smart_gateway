@@ -20,13 +20,13 @@ UTILS_SRC_PATH=../src/utils
 TEST_SRC_PATH=../src/test
 
 SOURCES=$(APP_SRC_PATH)/main.c \
-	$(APP_SRC_PATH)/smart_power_app.c \
-	$(SMART_POWER_STACK_SRC_PATH)/smart_power_stack.c \
+	$(XBEE_STACK_SRC_PATH)/xbee_stack.c \
 	$(PLATFORM_SRC_PATH)/platform.c \
 	$(PLATFORM_SRC_PATH)/platform_usart.c \
 	$(PLATFORM_SRC_PATH)/platform_linux_usart.c \
 	$(PLATFORM_SRC_PATH)/rs232.c \
-	$(XBEE_STACK_SRC_PATH)/xbee_stack.c \
+	$(APP_SRC_PATH)/smart_power_app.c \
+	$(SMART_POWER_STACK_SRC_PATH)/smart_power_stack.c \
 	$(XBEE_STACK_SRC_PATH)/xbee_at_command.c \
 	$(XBEE_STACK_SRC_PATH)/xbee_zigbee_operations.c \
 	$(UTILS_SRC_PATH)/timer.c \
