@@ -14,6 +14,7 @@ int main (void)
     while(1)
     {
         XbeeHouseKeeping();
+        DelaySec(2);
     }
 
     printf("\n\n");
