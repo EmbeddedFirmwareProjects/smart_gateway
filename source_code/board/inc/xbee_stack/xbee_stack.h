@@ -172,7 +172,7 @@ extern u8 FrameIdCounter;
 s16 XbeeStackInit(void);
 void XbeeHouseKeeping(void);
 
-void XbeeProcessApiFrameResponse(u8* pdata, u16 len);
+void XbeeProcessApiFrameResponse(void);
 s16 XbeeProcessApiFrameRequest(u8* pdata, u16 len);
 
 #endif

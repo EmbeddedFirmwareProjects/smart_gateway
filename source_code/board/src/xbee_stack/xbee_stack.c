@@ -4,11 +4,12 @@
 #include <platform.h>
 
 static void Notify_Xbee_Api_Frame_Response(u8 *pdata, u16 len);
-static s16 processFrameData(u8 *data);
+static s16 processFrameData(void);
 static s16 validateApiFrame(u8 *data);
 
 u8 FrameIdCounter = 0x01;
-XbeePacketStatus sXbeePacketStatusList[XBEE_PACKET_STATUS_LIST_SIZE];
+static XbeePacketStatus sXbeePacketStatusList[XBEE_PACKET_STATUS_LIST_SIZE];
+static u8 sXbeePacketProcessOffset = 0x00;
 
 static PlatformOperations sXbeePlatformOperations = {
         .pRxFunc = Notify_Xbee_Api_Frame_Response,
@@ -34,8 +35,6 @@ s16 XbeeStackInit(void)
 
 void XbeeHouseKeeping(void)
 {
-    static u8 sXbeePacketProcessOffset = 0x00;
-
     u8 tmp_xbee_packet_process_offset = sXbeePacketProcessOffset;
     u8 list_count = sXbeePacketProcessOffset;
 
@@ -81,7 +80,7 @@ void XbeeHouseKeeping(void)
         }
     }
     sXbeePacketStatusList[sXbeePacketProcessOffset].isInUse = true;
-    XbeeProcessApiFrameResponse(sXbeePacketStatusList[sXbeePacketProcessOffset].bufferPacket, sXbeePacketStatusList[sXbeePacketProcessOffset].dataLen);
+    XbeeProcessApiFrameResponse();
     sXbeePacketStatusList[sXbeePacketProcessOffset].isInUse = false;
     sXbeePacketStatusList[sXbeePacketProcessOffset].isValid = false;
 }
@@ -191,7 +190,7 @@ static void Notify_Xbee_Api_Frame_Response(u8 *pdata, u16 len)
     }
 }
 
-void XbeeProcessApiFrameResponse(u8* pdata, u16 len)
+void XbeeProcessApiFrameResponse(void)
 {
     s16 ret = 0x00;
 
@@ -210,18 +209,15 @@ void XbeeProcessApiFrameResponse(u8* pdata, u16 len)
 #endif
 
     // validate api frame
-    ret = validateApiFrame(pdata);
+    ret = validateApiFrame(sXbeePacketStatusList[sXbeePacketProcessOffset].bufferPacket);
     if(ret != EXBEE_OK)
     {
         LOG_ERR(("\nERR:: validateApiFrame():: %d", ret));
         return;
     }
 
-    // validate xbee n/w layer
-
-
     // process frame for application
-    ret = processFrameData(pdata);
+    ret = processFrameData();
     if(ret != EXBEE_OK)
     {
         LOG_ERR(("ERR:: processFrameData():: %d\n", ret));
@@ -274,7 +270,7 @@ static s16 validateApiFrame(u8 *data)
     }
 }
 
-static s16 processFrameData(u8 *data)
+static s16 processFrameData(void)
 {
     u32 api_identifier_list_len = 0x00;
     u32 count = 0x00;
@@ -285,9 +281,9 @@ static s16 processFrameData(u8 *data)
 
     for(count = 0x00; count < api_identifier_list_len; count++)
     {
-        if(ProcessApiIdentifierList[count].apiIdentifier == data[3])
+        if(ProcessApiIdentifierList[count].apiIdentifier == sXbeePacketStatusList[sXbeePacketProcessOffset].bufferPacket[3])
         {
-            ProcessApiIdentifierList[count].pFunc(data);
+            ProcessApiIdentifierList[count].pFunc(sXbeePacketStatusList[sXbeePacketProcessOffset].bufferPacket);
         }
     }
 

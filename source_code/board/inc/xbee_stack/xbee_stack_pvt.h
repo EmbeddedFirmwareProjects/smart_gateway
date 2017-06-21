@@ -3,6 +3,7 @@
 
 #include <comman.h>
 #include <xbee_stack.h>
+#include <xbee_zigbee_operations.h>
 
 #define XBEE_PACKET_STATUS_LIST_SIZE 3
 
@@ -17,17 +18,15 @@ typedef struct
 typedef struct
 {
     u8 apiIdentifier;
-    void(*pFunc)(void*);
+    void(*pFunc)(u8 *);
 }ApiIdentifierList;
 
-void XbeeProcessAtCommandResponse(void *apdata);
-void XbeeProcessZigbeeTransmitStatus(void *apdata);
-void XbeeProcessZigbeeReceivePacket(void *apdata);
+void XbeeProcessAtCommandResponse(u8 *apdata);
 
 static ApiIdentifierList ProcessApiIdentifierList[] = {
     {AT_COMMAND_RESPONSE, XbeeProcessAtCommandResponse},
-    {ZIGBEE_TRANSMIT_STATUS, XbeeProcessZigbeeTransmitStatus},
-    {ZIGBEE_RECEIVE_PACKET, XbeeProcessZigbeeReceivePacket},
+    {ZIGBEE_TRANSMIT_STATUS, XbeeZigbeePushReceivePacket},
+    {ZIGBEE_RECEIVE_PACKET, XbeeZigbeePushReceivePacket},
 };
 
 #endif 

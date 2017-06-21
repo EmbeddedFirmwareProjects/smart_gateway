@@ -3,11 +3,10 @@
 
 static u8 sAtCommandRequestApiPacketBuffer[API_FRAME_REQUEST_BUFFER_SIZE] = {0};
 
-void XbeeProcessAtCommandResponse(void *apdata)
+void XbeeProcessAtCommandResponse(u8 *data)
 {
     u16 len = 0x00;
     s16 cmd_data_len = 0x00;
-    u8 *data = (u8 *)apdata;
     AppXbeeAtCommandResponse app_at_cmd_response = {{0}};
 
     LOG_INFO0(("\n<< %s >>", __func__));

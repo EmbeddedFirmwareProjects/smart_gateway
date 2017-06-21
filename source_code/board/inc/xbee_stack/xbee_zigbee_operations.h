@@ -16,7 +16,10 @@ typedef struct
 }AppXbeeZigbeeTransmitRequest;
 
 
-void XbeeZigbeeInit(void);
+void XbeeZigbeeOperationsInit(void);
+void XbeeZigbeeHouseKeeping(void);
+void XbeeZigbeePushReceivePacket(u8 *data);
+
 s16 XbeeSendZigbeeTransmitRequest(AppXbeeZigbeeTransmitRequest *zigbee_tx_request);
 void XbeeZigbeeReceiveEventHandler(AppXbeeZigbeeReceivePacket *zigbee_response);     // should be defined in application layer
 

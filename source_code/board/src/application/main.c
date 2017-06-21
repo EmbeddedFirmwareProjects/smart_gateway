@@ -10,11 +10,13 @@ int main (void)
     PlatformPeripheralInit();
 
     XbeeStackInit();
+    XbeeZigbeeOperationsInit();
 
     while(1)
     {
         XbeeHouseKeeping();
-        DelaySec(2);
+        XbeeZigbeeHouseKeeping();
+        DelaySec(1);
     }
 
     printf("\n\n");
