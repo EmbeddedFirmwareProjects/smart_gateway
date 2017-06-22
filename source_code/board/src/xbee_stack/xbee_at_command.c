@@ -46,7 +46,7 @@ s16 XbeeSendAtCommandRequest(AppXbeeAtCommandFrame *at_cmd_request)
     {
         memcpy(&sAtCommandRequestApiPacketBuffer[7], at_cmd_request->atCmdFrame.parameterValue, at_cmd_request->parameterLen);
     }
-    return XbeeProcessApiFrameRequest(sAtCommandRequestApiPacketBuffer, len);
+    return XbeeSendApiFrameRequest(sAtCommandRequestApiPacketBuffer, len);
 }
 
 void XbeeAtCommandEventHandler(AppXbeeAtCommandResponse *at_cmd_response)

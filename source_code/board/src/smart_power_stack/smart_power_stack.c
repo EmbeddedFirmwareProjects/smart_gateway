@@ -3,9 +3,10 @@
 #include <smart_power_stack.h>
 #include <smart_power_app.h>
 
-static void SmartPowerStackSendCommand(SmartPowerStackDestinationDetails *destination, u8 *pdata, u8 len);
 static void SmartPowerStackProcessSystemCommand(u8 *pdata);
 static void SmartPowerStackProcessApplicationCommand(u8 *pdata);
+
+
 static u8 SmartPowerStackCalculateCheckSum(u8 *apapi_frame, u16 len)
 {
     long check_sum = 0x00;
@@ -103,23 +104,24 @@ void SmartPowerStackProcessApplicationCommand(u8 *pdata)
     }
 }
 
-void SmartPowerStackSendApplicationCommand(SmartPowerStackDestinationDetails *destination, SmartPowerStackAppCommand *papp_cmd)
+void SmartPowerStackSendApplicationCommand(SmartPowerStackAppCommand *papp_cmd)
 {
     u8 send_response[SMART_POWER_APPLICATION_COMMAND_MAX_LEN] = {0};
-    u8 count = 0x00;
+    u8 byte_count = 0x00;
+    s16 ret = 0x00;
 
     switch(papp_cmd->cmd)
     {
         case SMART_POWER_APPLICATION_COMMAND_SWITCH_CONTROL:
         {
             // send response frame to master
-            send_response[count++] = SMART_POWER_SYSTEM_COMMAND_START_DELIMITER;
-            send_response[count++] = 0x05;
-            send_response[count++] = SMART_POWER_APPLICATION_COMMAND_SWITCH_CONTROL;
-            send_response[count++] = papp_cmd->commandType;
-            send_response[count++] = papp_cmd->data.SwitchControl.response.switchNumber;
-            send_response[count++] = papp_cmd->data.SwitchControl.response.responseStatus;
-            send_response[count] = papp_cmd->data.SwitchControl.response.SwitchStatus;
+            send_response[byte_count++] = SMART_POWER_SYSTEM_COMMAND_START_DELIMITER;
+            send_response[byte_count++] = 0x05;                  // Length
+            send_response[byte_count++] = SMART_POWER_APPLICATION_COMMAND_SWITCH_CONTROL;
+            send_response[byte_count++] = papp_cmd->commandType;
+            send_response[byte_count++] = papp_cmd->data.SwitchControl.response.switchNumber;
+            send_response[byte_count++] = papp_cmd->data.SwitchControl.response.responseStatus;
+            send_response[byte_count] = papp_cmd->data.SwitchControl.response.SwitchStatus;
         }
         break;
 
@@ -130,47 +132,7 @@ void SmartPowerStackSendApplicationCommand(SmartPowerStackDestinationDetails *de
         }
     }
 
-    SmartPowerStackSendCommand(destination, send_response, count);
-}
-
-void SmartPowerStackSendCommand(SmartPowerStackDestinationDetails *destination, u8 *pdata, u8 len)
-{
-    s16 ret = 0x00;
-    AppXbeeZigbeeTransmitRequest zigbee_request;
-
-    LOG_INFO(("\n<< %s >>", __func__));
-
-    if (destination == '\0')
-    {
-        // send to coordinator
-        zigbee_request.rfTransmitRequest.destinationAdress[0] = 0x00;
-        zigbee_request.rfTransmitRequest.destinationAdress[1] = 0x00;
-        zigbee_request.rfTransmitRequest.destinationAdress[2] = 0x00;
-        zigbee_request.rfTransmitRequest.destinationAdress[3] = 0x00;
-        zigbee_request.rfTransmitRequest.destinationAdress[4] = 0x00;
-        zigbee_request.rfTransmitRequest.destinationAdress[5] = 0x00;
-        zigbee_request.rfTransmitRequest.destinationAdress[6] = 0x00;
-        zigbee_request.rfTransmitRequest.destinationAdress[7] = 0x00;
-    }
-    else
-    {
-        zigbee_request.rfTransmitRequest.destinationAdress[0] = destination->destinationAddress[0];
-        zigbee_request.rfTransmitRequest.destinationAdress[1] = destination->destinationAddress[1];
-        zigbee_request.rfTransmitRequest.destinationAdress[2] = destination->destinationAddress[2];
-        zigbee_request.rfTransmitRequest.destinationAdress[3] = destination->destinationAddress[3];
-        zigbee_request.rfTransmitRequest.destinationAdress[4] = destination->destinationAddress[4];
-        zigbee_request.rfTransmitRequest.destinationAdress[5] = destination->destinationAddress[5];
-        zigbee_request.rfTransmitRequest.destinationAdress[6] = destination->destinationAddress[6];
-        zigbee_request.rfTransmitRequest.destinationAdress[7] = destination->destinationAddress[7];
-    }
-    zigbee_request.rfTransmitRequest.destinationNetworkAddress[0] = destination->destinationNetworkAddress[0];
-    zigbee_request.rfTransmitRequest.destinationNetworkAddress[1] = destination->destinationNetworkAddress[1];
-    zigbee_request.rfTransmitRequest.broadcastRadius = 0x00;
-    zigbee_request.rfTransmitRequest.options = ZIGBEE_OPTIONS_DISABLE_RETRIES | ZIGBEE_OPTIONS_ENABLE_APS_ENCRYPTION;
-    zigbee_request.rfDataLen = len;
-    zigbee_request.rfTransmitRequest.rfData = pdata;
-
-    ret = XbeeSendZigbeeTransmitRequest(&zigbee_request);
+    ret = XbeeSendZigbeeTransmitRequest(send_response, byte_count);
     if(ret != 0x00)
     {
         LOG_ERR(("\nERR:: XbeeSendZigbeeTransmitRequest(): %d", ret));

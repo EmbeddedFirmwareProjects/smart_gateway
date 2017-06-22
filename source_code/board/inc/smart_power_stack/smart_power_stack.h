@@ -157,14 +157,8 @@ typedef struct
     SmartPowerAppCommandData data;
 }SmartPowerStackAppCommand;
 
-typedef struct
-{
-    u8 destinationAddress[8];
-    u8 destinationNetworkAddress[2];
-}SmartPowerStackDestinationDetails;
-
 void SmartPowerStackProcessCommand(u8 *pdata, u8 len);
-void SmartPowerStackSendApplicationCommand(SmartPowerStackDestinationDetails *destination_addr, SmartPowerStackAppCommand *papp_cmd);
+void SmartPowerStackSendApplicationCommand(SmartPowerStackAppCommand *papp_cmd);
 
 
 #endif

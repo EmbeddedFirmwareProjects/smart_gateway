@@ -4,11 +4,15 @@
 #include <xbee_zigbee_operations.h>
 #include <smart_power_stack.h>
 
-static XbeeZigbeePacketStatus sXbeeZigbeePacketStatusList[XBEE_ZIGBEE_PACKET_STATUS_LIST_SIZE];
 
-static u8 sZigbeeRfCommandRequestApiPacketBuffer[API_FRAME_REQUEST_BUFFER_SIZE] = {0};
-static u8 sXbeeZigbeePacketProcessOffset = 0x00;
 static void XbeeProcessZigbeeReceivePacket(void);
+
+
+static XbeeZigbeeReceivePacket sXbeeZigbeeReceivePacketList[XBEE_ZIGBEE_PACKET_STATUS_LIST_SIZE];
+static u8 sXbeeZigbeePacketProcessOffset = 0x00;
+static u8 sXbeeZigbeeServerSourceAddress[XBEE_ZIGBEE_SOURCE_ADDRESS_LEN] = {0};
+static u16 sXbeeZigbeeServerNetworkAddress = 0x00;
+
 
 void XbeeZigbeeOperationsInit(void)
 {
@@ -16,10 +20,10 @@ void XbeeZigbeeOperationsInit(void)
 
     for(list_count = 0x00;list_count < XBEE_ZIGBEE_PACKET_STATUS_LIST_SIZE; list_count++)
     {
-        sXbeeZigbeePacketStatusList[list_count].isInUse = false;
-        sXbeeZigbeePacketStatusList[list_count].isValid = false;
-        sXbeeZigbeePacketStatusList[list_count].dataLen = 0x00;
-        sXbeeZigbeePacketStatusList[list_count].bufferPacket = '\0';
+        sXbeeZigbeeReceivePacketList[list_count].isInUse = false;
+        sXbeeZigbeeReceivePacketList[list_count].isValid = false;
+        sXbeeZigbeeReceivePacketList[list_count].dataLen = 0x00;
+        sXbeeZigbeeReceivePacketList[list_count].bufferPacket = '\0';
     }
 }
 
@@ -28,7 +32,7 @@ void XbeeZigbeeHouseKeeping(void)
     u8 tmp_xbee_packet_process_offset = sXbeeZigbeePacketProcessOffset;
     u8 list_count = sXbeeZigbeePacketProcessOffset;
 
-    if((sXbeeZigbeePacketStatusList[list_count].isInUse == false) && (sXbeeZigbeePacketStatusList[list_count].isValid == true))
+    if((sXbeeZigbeeReceivePacketList[list_count].isInUse == false) && (sXbeeZigbeeReceivePacketList[list_count].isValid == true))
     {
         sXbeeZigbeePacketProcessOffset = list_count;
     }
@@ -39,7 +43,7 @@ void XbeeZigbeeHouseKeeping(void)
             list_count = 0x00;
             for(;list_count < tmp_xbee_packet_process_offset; list_count++)
             {
-                if(sXbeeZigbeePacketStatusList[list_count].isValid == true)
+                if(sXbeeZigbeeReceivePacketList[list_count].isValid == true)
                 {
                     sXbeeZigbeePacketProcessOffset = list_count;
                     break;
@@ -56,7 +60,7 @@ void XbeeZigbeeHouseKeeping(void)
             list_count++;
             for(;list_count < XBEE_ZIGBEE_PACKET_STATUS_LIST_SIZE; list_count++)
             {
-                if(sXbeeZigbeePacketStatusList[list_count].isValid == true)
+                if(sXbeeZigbeeReceivePacketList[list_count].isValid == true)
                 {
                     sXbeeZigbeePacketProcessOffset = list_count;
                     break;
@@ -69,12 +73,11 @@ void XbeeZigbeeHouseKeeping(void)
             }
         }
     }
-    sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].isInUse = true;
+    sXbeeZigbeeReceivePacketList[sXbeeZigbeePacketProcessOffset].isInUse = true;
     XbeeProcessZigbeeReceivePacket();
-    sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].isInUse = false;
-    sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].isValid = false;
+    sXbeeZigbeeReceivePacketList[sXbeeZigbeePacketProcessOffset].isInUse = false;
+    sXbeeZigbeeReceivePacketList[sXbeeZigbeePacketProcessOffset].isValid = false;
 }
-
 
 void XbeeZigbeePushReceivePacket(u8 *data)
 {
@@ -87,7 +90,7 @@ void XbeeZigbeePushReceivePacket(u8 *data)
 
     tmp_xbee_zigbee_packet_push_offset = sXbeeZigbeePacketPushOffset;
     list_count = sXbeeZigbeePacketPushOffset;
-    if((sXbeeZigbeePacketStatusList[list_count].isInUse == false) && (sXbeeZigbeePacketStatusList[list_count].isValid == false))
+    if((sXbeeZigbeeReceivePacketList[list_count].isInUse == false) && (sXbeeZigbeeReceivePacketList[list_count].isValid == false))
     {
         sXbeeZigbeePacketPushOffset = list_count;
     }
@@ -98,7 +101,7 @@ void XbeeZigbeePushReceivePacket(u8 *data)
             list_count = 0x00;
             for(;list_count < tmp_xbee_zigbee_packet_push_offset; list_count++)
             {
-                if(sXbeeZigbeePacketStatusList[list_count].isInUse == false)
+                if(sXbeeZigbeeReceivePacketList[list_count].isInUse == false)
                 {
                     sXbeeZigbeePacketPushOffset = list_count;
                     break;
@@ -115,7 +118,7 @@ void XbeeZigbeePushReceivePacket(u8 *data)
             list_count++;
             for(;list_count < XBEE_ZIGBEE_PACKET_STATUS_LIST_SIZE; list_count++)
             {
-                if(sXbeeZigbeePacketStatusList[list_count].isInUse == false)
+                if(sXbeeZigbeeReceivePacketList[list_count].isInUse == false)
                 {
                     sXbeeZigbeePacketPushOffset = list_count;
                     break;
@@ -128,73 +131,62 @@ void XbeeZigbeePushReceivePacket(u8 *data)
             }
         }
     }
-    sXbeeZigbeePacketStatusList[sXbeeZigbeePacketPushOffset].bufferPacket = data;
-    sXbeeZigbeePacketStatusList[sXbeeZigbeePacketPushOffset].isValid = true;
+    sXbeeZigbeeReceivePacketList[sXbeeZigbeePacketPushOffset].bufferPacket = data;
+    sXbeeZigbeeReceivePacketList[sXbeeZigbeePacketPushOffset].isValid = true;
 }
 
 static void XbeeProcessZigbeeReceivePacket(void)
 {
     u16 len = 0x00;
     s16 rcv_data_len = 0x00;
-    AppXbeeZigbeeReceivePacket app_zigbee_response = {{{0}}};
+    u8 count = 0x00;
 
     LOG_INFO0(("\n<< %s >>", __func__));
 
-    len = (sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].bufferPacket[1] << 8) | sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].bufferPacket[2];
-    app_zigbee_response.rfPacketResponse.sourceAdress[0] = sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].bufferPacket[4];
-    app_zigbee_response.rfPacketResponse.sourceAdress[1] = sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].bufferPacket[5];
-    app_zigbee_response.rfPacketResponse.sourceAdress[2] = sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].bufferPacket[6];
-    app_zigbee_response.rfPacketResponse.sourceAdress[3] = sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].bufferPacket[7];
-    app_zigbee_response.rfPacketResponse.sourceAdress[4] = sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].bufferPacket[8];
-    app_zigbee_response.rfPacketResponse.sourceAdress[5] = sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].bufferPacket[9];
-    app_zigbee_response.rfPacketResponse.sourceAdress[6] = sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].bufferPacket[10];
-    app_zigbee_response.rfPacketResponse.sourceAdress[7] = sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].bufferPacket[11];
-    app_zigbee_response.rfPacketResponse.sourceNetworkAddress = (sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].bufferPacket[12] << 8) | sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].bufferPacket[13];
-    app_zigbee_response.rfPacketResponse.receiveOption = sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].bufferPacket[14];
-
+    len = (sXbeeZigbeeReceivePacketList[sXbeeZigbeePacketProcessOffset].bufferPacket[1] << 8) | sXbeeZigbeeReceivePacketList[sXbeeZigbeePacketProcessOffset].bufferPacket[2];
     // cmd + sourceAdress(8) + sourceNetworkAddress[2] + receiveOption
     rcv_data_len = (len - 12);
 
     if(rcv_data_len > 0)
     {
-        app_zigbee_response.rfPacketResponse.receiveData = &sXbeeZigbeePacketStatusList[sXbeeZigbeePacketProcessOffset].bufferPacket[15];
-        app_zigbee_response.receiveDataLen = rcv_data_len;
-        XbeeZigbeeReceiveEventHandler(&app_zigbee_response);
+        {
+            AppXbeeZigbeeReceivePacket app_zigbee_response = {{0}};
+
+            app_zigbee_response.rfPacketResponse.sourceAdress = (u8 *) &sXbeeZigbeeReceivePacketList[sXbeeZigbeePacketProcessOffset].bufferPacket[4];
+            app_zigbee_response.rfPacketResponse.sourceNetworkAddress = (sXbeeZigbeeReceivePacketList[sXbeeZigbeePacketProcessOffset].bufferPacket[12] << 8) | sXbeeZigbeeReceivePacketList[sXbeeZigbeePacketProcessOffset].bufferPacket[13];
+            app_zigbee_response.rfPacketResponse.receiveOption = sXbeeZigbeeReceivePacketList[sXbeeZigbeePacketProcessOffset].bufferPacket[14];
+
+            app_zigbee_response.rfPacketResponse.receiveData = &sXbeeZigbeeReceivePacketList[sXbeeZigbeePacketProcessOffset].bufferPacket[15];
+            app_zigbee_response.receiveDataLen = rcv_data_len;
+
+            LOG_INFO(("\nRx ZigbeePacket:: "));
+            for(count = 0x00; count < XBEE_ZIGBEE_SOURCE_ADDRESS_LEN; count++)
+            {
+                LOG_INFO((" %x", (unsigned int) app_zigbee_response.rfPacketResponse.sourceAdress[count]));
+            }
+            LOG_INFO((" %x", (app_zigbee_response.rfPacketResponse.sourceNetworkAddress >> 8) & 0xFF));
+            LOG_INFO((" %x", (app_zigbee_response.rfPacketResponse.sourceNetworkAddress) & 0xFF));
+            LOG_INFO((" %x", app_zigbee_response.rfPacketResponse.receiveOption));
+
+            if(app_zigbee_response.receiveDataLen > 0)
+            {
+                for(count = 0x00; count < app_zigbee_response.receiveDataLen; count++)
+                {
+                    LOG_INFO((" %x", app_zigbee_response.rfPacketResponse.receiveData[count]));
+                }
+            }
+        }
+
+        // validate zigbee source address and network address
+
+
+        // Process Smart Power Packet
+        SmartPowerStackProcessCommand(&sXbeeZigbeeReceivePacketList[sXbeeZigbeePacketProcessOffset].bufferPacket[15], rcv_data_len);
     }
     else
     {
         LOG_ERR(("\nERR:: XbeeProcessZigbeeReceivePacket() Invalid rcv_data_len: %d", rcv_data_len));
     }
-}
-
-void XbeeZigbeeReceiveEventHandler(AppXbeeZigbeeReceivePacket *zigbee_response)
-{
-    u16 count = 0x00;
-
-    LOG_INFO0(("\n<< %s >>", __func__));
-
-    LOG_INFO(("\nRx ZigbeePacket:: "));
-    for(count = 0x00; count < ZIGBEE_RECEIVE_PACKET_SOURCE_ADDRESS_LEN; count++)
-    {
-        LOG_INFO((" %x", zigbee_response->rfPacketResponse.sourceAdress[count]));
-    }
-    LOG_INFO((" %x", (zigbee_response->rfPacketResponse.sourceNetworkAddress >> 8) & 0xFF));
-    LOG_INFO((" %x", (zigbee_response->rfPacketResponse.sourceNetworkAddress) & 0xFF));
-    LOG_INFO((" %x", zigbee_response->rfPacketResponse.receiveOption));
-
-    if(zigbee_response->receiveDataLen > 0)
-    {
-        for(count = 0x00; count < zigbee_response->receiveDataLen; count++)
-        {
-            LOG_INFO((" %x", zigbee_response->rfPacketResponse.receiveData[count]));
-        }
-    }
-
-    // validate network address
-
-
-    // Process Smart Power Packet
-    SmartPowerStackProcessCommand(zigbee_response->rfPacketResponse.receiveData, zigbee_response->receiveDataLen);
 }
 
 void XbeeProcessZigbeeTransmitStatus(u8 *data)
@@ -211,45 +203,46 @@ void XbeeProcessZigbeeTransmitStatus(u8 *data)
 
     if(transmit_status.deliveryStatus != TX_DELIVERY_STATUS_SUCCESS)
     {
-        LOG_ERR(("\nERR:: XbeeProcessZigbeeTransmitStatus() failed to transmit: %x %x %x %x %x %x", data[4], data[5], data[6], data[7], data[8], data[9]));
+        LOG_ERR(("\nERR:: XbeeProcessZigbeeTransmitStatus() failed to transmit: %x %x %x %x %x %x\n", data[4], data[5], data[6], data[7], data[8], data[9]));
     }
     else
     {
-        LOG_INFO(("\nXbeeProcessZigbeeTransmitStatus() transmitted successfully: %x %x %x %x %x %x", data[4], data[5], data[6], data[7], data[8], data[9]));
+        LOG_INFO(("\nXbeeProcessZigbeeTransmitStatus() transmitted successfully: %x %x %x %x %x %x\n", data[4], data[5], data[6], data[7], data[8], data[9]));
     }
 }
 
-s16 XbeeSendZigbeeTransmitRequest(AppXbeeZigbeeTransmitRequest *zigbee_tx_request)
+s16 XbeeSendZigbeeTransmitRequest(u8 *data, u8 data_len)
 {
     u16 len = 0x00;
     s16 ret = 0x00;
+    u8 xbee_zigbee_request_packet_buffer[API_FRAME_REQUEST_BUFFER_SIZE] = {0};
 
     LOG_INFO0(("\n<< %s >>", __func__));
 
     // cmd + frameId + destinationAddr(8) + destinationNetworkAddress[2] + broadcastRadius + options
-    len = (zigbee_tx_request->rfDataLen + 14);
+    len = (data_len + 14);
 
-    sZigbeeRfCommandRequestApiPacketBuffer[3]   = ZIGBEE_TRANSMIT_REQUEST;
-    sZigbeeRfCommandRequestApiPacketBuffer[4]   = FrameIdCounter++;
-    sZigbeeRfCommandRequestApiPacketBuffer[5]   = zigbee_tx_request->rfTransmitRequest.destinationAdress[0];
-    sZigbeeRfCommandRequestApiPacketBuffer[6]   = zigbee_tx_request->rfTransmitRequest.destinationAdress[1];
-    sZigbeeRfCommandRequestApiPacketBuffer[7]   = zigbee_tx_request->rfTransmitRequest.destinationAdress[2];
-    sZigbeeRfCommandRequestApiPacketBuffer[8]   = zigbee_tx_request->rfTransmitRequest.destinationAdress[3];
-    sZigbeeRfCommandRequestApiPacketBuffer[9]   = zigbee_tx_request->rfTransmitRequest.destinationAdress[4];
-    sZigbeeRfCommandRequestApiPacketBuffer[10]  = zigbee_tx_request->rfTransmitRequest.destinationAdress[5];
-    sZigbeeRfCommandRequestApiPacketBuffer[11]  = zigbee_tx_request->rfTransmitRequest.destinationAdress[6];
-    sZigbeeRfCommandRequestApiPacketBuffer[12]  = zigbee_tx_request->rfTransmitRequest.destinationAdress[7];
-    sZigbeeRfCommandRequestApiPacketBuffer[13]  = zigbee_tx_request->rfTransmitRequest.destinationNetworkAddress[0];
-    sZigbeeRfCommandRequestApiPacketBuffer[14]  = zigbee_tx_request->rfTransmitRequest.destinationNetworkAddress[1];
-    sZigbeeRfCommandRequestApiPacketBuffer[15]  = zigbee_tx_request->rfTransmitRequest.broadcastRadius;
-    sZigbeeRfCommandRequestApiPacketBuffer[16]  = zigbee_tx_request->rfTransmitRequest.options;
+    xbee_zigbee_request_packet_buffer[3]   = ZIGBEE_TRANSMIT_REQUEST;
+    xbee_zigbee_request_packet_buffer[4]   = FrameIdCounter++;
+    xbee_zigbee_request_packet_buffer[5]   = sXbeeZigbeeServerSourceAddress[0];
+    xbee_zigbee_request_packet_buffer[6]   = sXbeeZigbeeServerSourceAddress[1];
+    xbee_zigbee_request_packet_buffer[7]   = sXbeeZigbeeServerSourceAddress[2];
+    xbee_zigbee_request_packet_buffer[8]   = sXbeeZigbeeServerSourceAddress[3];
+    xbee_zigbee_request_packet_buffer[9]   = sXbeeZigbeeServerSourceAddress[4];
+    xbee_zigbee_request_packet_buffer[10]  = sXbeeZigbeeServerSourceAddress[5];
+    xbee_zigbee_request_packet_buffer[11]  = sXbeeZigbeeServerSourceAddress[6];
+    xbee_zigbee_request_packet_buffer[12]  = sXbeeZigbeeServerSourceAddress[7];
+    xbee_zigbee_request_packet_buffer[13]  = (sXbeeZigbeeServerNetworkAddress & 0xFF);
+    xbee_zigbee_request_packet_buffer[14]  = (sXbeeZigbeeServerNetworkAddress & 0XFF00) >> 8;
+    xbee_zigbee_request_packet_buffer[15]  = 0x00;
+    xbee_zigbee_request_packet_buffer[16]  = ZIGBEE_OPTIONS_DISABLE_RETRIES | ZIGBEE_OPTIONS_ENABLE_APS_ENCRYPTION;
 
-    if(zigbee_tx_request->rfDataLen > 0)
+    if(data_len > 0)
     {
-        memcpy(&sZigbeeRfCommandRequestApiPacketBuffer[17], zigbee_tx_request->rfTransmitRequest.rfData, zigbee_tx_request->rfDataLen);
+        memcpy(&xbee_zigbee_request_packet_buffer[17], data, data_len);
     }
 
-    ret = XbeeProcessApiFrameRequest(sZigbeeRfCommandRequestApiPacketBuffer, len);
+    ret = XbeeSendApiFrameRequest(xbee_zigbee_request_packet_buffer, len);
     if(ret != 0x00)
     {
         LOG_ERR(("\nERR:: ProcessApiFrameRequest(): %d", ret));

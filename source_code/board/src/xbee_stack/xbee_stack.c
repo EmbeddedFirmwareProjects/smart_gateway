@@ -3,17 +3,19 @@
 #include <xbee_stack_pvt.h>
 #include <platform.h>
 
+
 static void Notify_Xbee_Api_Frame_Response(u8 *pdata, u16 len);
 static s16 processFrameData(void);
-static s16 validateApiFrame(u8 *data);
+static s16 validateApiFrame(void);
 
-u8 FrameIdCounter = 0x01;
 static XbeePacketStatus sXbeePacketStatusList[XBEE_PACKET_STATUS_LIST_SIZE];
 static u8 sXbeePacketProcessOffset = 0x00;
-
 static PlatformOperations sXbeePlatformOperations = {
         .pRxFunc = Notify_Xbee_Api_Frame_Response,
 };
+
+
+u8 FrameIdCounter = 0x01;
 
 
 s16 XbeeStackInit(void)
@@ -25,7 +27,7 @@ s16 XbeeStackInit(void)
         sXbeePacketStatusList[list_count].isInUse = false;
         sXbeePacketStatusList[list_count].isValid = false;
         sXbeePacketStatusList[list_count].dataLen = 0x00;
-        memset(sXbeePacketStatusList[list_count].bufferPacket, 0x00, API_FRAME_MAX_RECEIVE_PACKET_SIZE);
+        memset(sXbeePacketStatusList[list_count].bufferPacket, 0x00, API_FRAME_RECEIVE_PACKET_SIZE);
     }
 
     return XbeePlatformInit(&sXbeePlatformOperations);
@@ -151,7 +153,7 @@ static void Notify_Xbee_Api_Frame_Response(u8 *pdata, u16 len)
                     }
                 }
             }
-            memset(sXbeePacketStatusList[sXbeePacketPushOffset].bufferPacket, 0x00, API_FRAME_MAX_RECEIVE_PACKET_SIZE);
+            memset(sXbeePacketStatusList[sXbeePacketPushOffset].bufferPacket, 0x00, API_FRAME_RECEIVE_PACKET_SIZE);
             sXbeePacketStatusList[sXbeePacketPushOffset].isValid = false;
             sXbeePacketStatusList[sXbeePacketPushOffset].bufferPacket[sXbeePushPointer++] = pdata[byte_count];
         }
@@ -209,7 +211,7 @@ void XbeeProcessApiFrameResponse(void)
 #endif
 
     // validate api frame
-    ret = validateApiFrame(sXbeePacketStatusList[sXbeePacketProcessOffset].bufferPacket);
+    ret = validateApiFrame();
     if(ret != EXBEE_OK)
     {
         LOG_ERR(("\nERR:: validateApiFrame():: %d", ret));
@@ -242,7 +244,7 @@ static u8 calculateCheckSum(u8 *apapi_frame, u16 len)
     return (check_sum & 0xFF);
 }
 
-static s16 validateApiFrame(u8 *data)
+static s16 validateApiFrame(void)
 {
     u16 len = 0x00;
     u8 cal_check_sum = 0x00;
@@ -250,22 +252,22 @@ static s16 validateApiFrame(u8 *data)
     LOG_INFO0(("\n<< %s >>", __func__));
 
     // verify start delimiter
-    if(data[0] != XBEE_API_FRAME_START_DELIMITER)
+    if(sXbeePacketStatusList[sXbeePacketProcessOffset].bufferPacket[0] != XBEE_API_FRAME_START_DELIMITER)
     {
         return -EXBEE_START_DELIMITER;
     }
 
-    len = (data[1] << 8) | data[2];
+    len = (sXbeePacketStatusList[sXbeePacketProcessOffset].bufferPacket[1] << 8) | sXbeePacketStatusList[sXbeePacketProcessOffset].bufferPacket[2];
 
     // verify checkSumexclude
-    cal_check_sum = calculateCheckSum(&data[3], len);  // exclude start delimiter, len (2) and checkSum
-    if(cal_check_sum == data[(len + 3)])     // startDelimiter(1) + len(2)
+    cal_check_sum = calculateCheckSum(&sXbeePacketStatusList[sXbeePacketProcessOffset].bufferPacket[3], len);  // exclude start delimiter, len (2) and checkSum
+    if(cal_check_sum == sXbeePacketStatusList[sXbeePacketProcessOffset].bufferPacket[(len + 3)])     // startDelimiter(1) + len(2)
     {
         return EXBEE_OK;
     }
     else
     {
-        LOG_ERR(("\nERR:: cal_check_sum:: %x, checkSum:: %x", cal_check_sum, data[(len + 3)]));
+        LOG_ERR(("\nERR:: cal_check_sum:: %x, checkSum:: %x", cal_check_sum, sXbeePacketStatusList[sXbeePacketProcessOffset].bufferPacket[(len + 3)]));
         return -EXBEE_CHECKSUM;
     }
 }
@@ -297,15 +299,7 @@ static s16 processFrameData(void)
     }
 }
 
-
 s16 XbeeSendApiFrameRequest(u8* pdata, u16 len)
-{
-    LOG_INFO0(("\n<< %s >>", __func__));
-
-    return sXbeePlatformOperations.pTxFunc(pdata, len);
-}
-
-s16 XbeeProcessApiFrameRequest(u8* pdata, u16 len)
 {
     LOG_INFO0(("\n<< %s >>", __func__));
 
@@ -316,5 +310,5 @@ s16 XbeeProcessApiFrameRequest(u8* pdata, u16 len)
 
     pdata[len + 3] = calculateCheckSum(&pdata[3], len); // exclude start delemiter + len (2)
 
-    return XbeeSendApiFrameRequest(pdata, (len + 4));   // including start delimiter + len(2) + checksum
+    return sXbeePlatformOperations.pTxFunc(pdata, len);
 }

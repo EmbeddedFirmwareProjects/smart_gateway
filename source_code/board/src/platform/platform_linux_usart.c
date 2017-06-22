@@ -60,7 +60,7 @@ static s16 LinuxSerialSend(u8 *pdata, u16 len)
     }
 
     RS232_SendBuf(sUsartPort, pdata, len);
-
+    LOG_INFO(("\n"));
     return 0;
 }
 

@@ -7,7 +7,6 @@ void SmartPowerAppSwitchControl(SmartPowerStackAppCommand *papp_cmd)
         if(papp_cmd->data.SwitchControl.request.requestType == SMART_POWER_APPLICATION_REQUEST_TYPE_UPDATE)
         {
             SmartPowerStackAppCommand switch_cntl;
-            SmartPowerStackDestinationDetails destination = {{0x00},{0x77,0x11}};   //need to update n/w address
 
             // update switch status
             LOG_INFO(("\nRequested to update switch number %d with value %d", papp_cmd->data.SwitchControl.request.switchNumber,papp_cmd->data.SwitchControl.request.SwitchStatus));
@@ -17,12 +16,12 @@ void SmartPowerAppSwitchControl(SmartPowerStackAppCommand *papp_cmd)
             switch_cntl.data.SwitchControl.response.switchNumber = papp_cmd->data.SwitchControl.response.switchNumber;
             switch_cntl.data.SwitchControl.response.responseStatus = 0x00;   // only testing purpose
             switch_cntl.data.SwitchControl.response.SwitchStatus = papp_cmd->data.SwitchControl.response.SwitchStatus;
-            SmartPowerStackSendApplicationCommand(&destination, &switch_cntl);
+
+            SmartPowerStackSendApplicationCommand(&switch_cntl);
         }
         else if(papp_cmd->data.SwitchControl.request.requestType == SMART_POWER_APPLICATION_REQUEST_TYPE_REQUEST_STATUS)
         {
             SmartPowerStackAppCommand switch_cntl;
-            SmartPowerStackDestinationDetails destination = {{0x00},{0x77,0x22}};   //need to update n/w address
 
             //Request for switch status
 
@@ -31,7 +30,8 @@ void SmartPowerAppSwitchControl(SmartPowerStackAppCommand *papp_cmd)
             switch_cntl.data.SwitchControl.response.switchNumber = papp_cmd->data.SwitchControl.response.switchNumber;
             switch_cntl.data.SwitchControl.response.responseStatus = 0x00;   // only testing purpose
             switch_cntl.data.SwitchControl.response.SwitchStatus = papp_cmd->data.SwitchControl.response.SwitchStatus;
-            SmartPowerStackSendApplicationCommand(&destination, &switch_cntl);
+
+            SmartPowerStackSendApplicationCommand(&switch_cntl);
         }
     }
 }

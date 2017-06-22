@@ -15,7 +15,7 @@ typedef struct
     s8 isValid;
     s8 dataLen;
     u8 *bufferPacket;
-}XbeeZigbeePacketStatus;
+}XbeeZigbeeReceivePacket;
 
 struct __tag_state_xbee_operations
 {

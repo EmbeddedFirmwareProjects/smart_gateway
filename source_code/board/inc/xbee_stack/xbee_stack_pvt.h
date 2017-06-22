@@ -12,7 +12,7 @@ typedef struct
     s8 isInUse;
     s8 isValid;
     s8 dataLen;
-    u8 bufferPacket[API_FRAME_MAX_RECEIVE_PACKET_SIZE];
+    u8 bufferPacket[API_FRAME_RECEIVE_PACKET_SIZE];
 }XbeePacketStatus;
 
 typedef struct
@@ -25,7 +25,7 @@ void XbeeProcessAtCommandResponse(u8 *apdata);
 
 static ApiIdentifierList ProcessApiIdentifierList[] = {
     {AT_COMMAND_RESPONSE, XbeeProcessAtCommandResponse},
-    {ZIGBEE_TRANSMIT_STATUS, XbeeZigbeePushReceivePacket},
+    {ZIGBEE_TRANSMIT_STATUS, XbeeProcessZigbeeTransmitStatus},
     {ZIGBEE_RECEIVE_PACKET, XbeeZigbeePushReceivePacket},
 };
 
